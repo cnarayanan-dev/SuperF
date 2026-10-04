@@ -1,28 +1,31 @@
 // Content script: overlay UI, search orchestration and highlighting.
 import { fuzzyMatch, tokenize } from '../search/fuzzy.ts';
-import { hybridScores } from '../search/rank.ts';
+import { hybridScores, isShown } from '../search/rank.ts';
 import type { ErrorResponse, IndexResponse, QueryResponse, Request } from '../messages.ts';
 import { MODEL } from '../model.ts';
 import { buildChunks, extractBlocks, toRange, type Block, type Chunk } from './dom.ts';
 import { OVERLAY_CSS, OVERLAY_HTML, PAGE_CSS } from './ui.ts';
 
-type Mode = 'word' | 'semantic';
-interface Settings { mode: Mode; threshold: number; minS: number; maxS: number; weight: number; dev: boolean }
+interface Settings { threshold: number; minS: number; maxS: number; weight: number; dev: boolean }
 interface Result {
   ranges: [block: number, start: number, end: number][];
-  chunk: number; // -1 for exact text matches
+  chunk: number;
   fuzzy: number;
-  semantic?: number;
-  hybrid?: number;
+  semantic: number;
+  hybrid: number;
 }
 
-const DEFAULTS: Settings = { mode: 'word', threshold: MODEL.defaultThreshold, minS: 1, maxS: 2, weight: 0.7, dev: false };
+const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, minS: 1, maxS: 2, weight: 0.7, dev: false };
 const DEBOUNCE_MS = 150;
 const BATCH = 32;
-const MAX_RESULTS = 10; // semantic mode
-const MAX_WORD_RESULTS = 500;
-const WORD_FUZZY_MIN = 0.6;
-const LITERAL_MATCH = 0.95; // fuzzy score at which every query word is on the page
+const MAX_RESULTS = 10;
+
+// Stored keys from earlier builds (like "mode") are ignored, missing ones fall back to the defaults.
+function loadSettings(stored: Record<string, unknown> = {}): Settings {
+  const out: Record<string, unknown> = { ...DEFAULTS };
+  for (const k in out) if (typeof stored[k] === typeof out[k]) out[k] = stored[k];
+  return out as unknown as Settings;
+}
 
 declare global { interface Window { __semanticFind?: boolean } }
 if (!window.__semanticFind) {
@@ -35,8 +38,10 @@ if (!window.__semanticFind) {
 }
 
 async function init(): Promise<() => void> {
-  const settings: Settings = { ...DEFAULTS, ...((await chrome.storage.local.get('settings')).settings ?? {}) };
+  const stored = (await chrome.storage.local.get('settings')).settings;
+  const settings = loadSettings(stored);
   const save = () => void chrome.storage.local.set({ settings });
+  if (Object.keys(stored ?? {}).some((k) => !(k in DEFAULTS))) save();
 
   // ---------- overlay ----------
   const host = document.createElement('div');
@@ -52,7 +57,6 @@ async function init(): Promise<() => void> {
   const $ = <T extends HTMLElement>(id: string) => shadow.getElementById(id) as T;
   const input = $<HTMLInputElement>('q');
   const countEl = $('count'), statusEl = $('status'), devEl = $('dev'), listEl = $('list');
-  const modeButtons = [...shadow.querySelectorAll<HTMLButtonElement>('[data-mode]')];
   const sliders = [...shadow.querySelectorAll<HTMLInputElement>('input[type=range]')];
 
   // ---------- state ----------
@@ -63,7 +67,7 @@ async function init(): Promise<() => void> {
   let seq = 0; // bumped on every new search, stale async answers are dropped
   let timer = 0;
   let typedAt = 0;
-  let index: { id: string; sig: string; done: Promise<void>; ms: number } | null = null;
+  let index: { id: string; sig: string; done: Promise<void>; ms: number; ready: boolean } | null = null;
 
   const send = <T>(req: Request) =>
     chrome.runtime.sendMessage({ ...req, target: 'bg' }) as Promise<T | ErrorResponse>;
@@ -96,13 +100,9 @@ async function init(): Promise<() => void> {
     results.slice(0, 20).forEach((r, i) => {
       const li = document.createElement('li');
       if (i === current) li.className = 'current';
-      const [b, s, e] = r.ranges[0];
-      const text = (r.chunk >= 0 ? chunks[r.chunk].text : blocks[b].text.slice(Math.max(0, s - 30), e + 30)).replace(/\s+/g, ' ');
-      const scores = r.semantic === undefined
-        ? `fuzzy ${r.fuzzy.toFixed(2)}`
-        : `cos ${r.semantic.toFixed(2)} · fuzzy ${r.fuzzy.toFixed(2)} · hybrid ${r.hybrid!.toFixed(2)}`;
+      const text = chunks[r.chunk].text.replace(/\s+/g, ' ');
       const scoreEl = document.createElement('b');
-      scoreEl.textContent = scores;
+      scoreEl.textContent = `cos ${r.semantic.toFixed(2)} · fuzzy ${r.fuzzy.toFixed(2)} · hybrid ${r.hybrid.toFixed(2)}`;
       li.append(scoreEl, ` ${text.slice(0, 90)}`);
       li.onclick = () => { current = i; render(); };
       listEl.append(li);
@@ -115,36 +115,11 @@ async function init(): Promise<() => void> {
     render();
   }
 
-  // ---------- word mode ----------
-  function wordSearch(query: string): Result[] {
-    const out: Result[] = [];
-    const needle = query.toLowerCase();
-    // Exact text first, in page order, like Cmd+F.
-    for (let b = 0; b < blocks.length && out.length < MAX_WORD_RESULTS; b++) {
-      const hay = blocks[b].text.toLowerCase();
-      for (let at = hay.indexOf(needle); at >= 0 && out.length < MAX_WORD_RESULTS; at = hay.indexOf(needle, at + needle.length)) {
-        out.push({ ranges: [[b, at, at + needle.length]], chunk: -1, fuzzy: 1 });
-      }
-    }
-    if (out.length) return out;
-    // Nothing exact: fall back to fuzzy word matching, best first.
-    const qt = tokenize(query).map((t) => t.t);
-    const caches = qt.map(() => new Map<string, number>());
-    chunks.forEach((c, i) => {
-      const m = fuzzyMatch(qt, c.tokens, caches);
-      if (m.score < WORD_FUZZY_MIN) return;
-      const ranges = m.hits.sort((x, y) => x - y)
-        .map((h): Result['ranges'][number] => [c.block, c.start + c.tokens[h].start, c.start + c.tokens[h].end]);
-      out.push({ ranges, chunk: i, fuzzy: m.score });
-    });
-    return out.sort((x, y) => y.fuzzy - x.fuzzy).slice(0, MAX_WORD_RESULTS);
-  }
-
-  // ---------- semantic mode ----------
+  // ---------- semantic search ----------
   function ensureIndex(): Promise<void> {
     const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${settings.minS}:${settings.maxS}`;
     if (index?.sig === sig) return index.done;
-    const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0 };
+    const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0, ready: false };
     index = mine;
     const texts = chunks.map((c) => c.text);
     // Batches of similar length waste less time on padding.
@@ -154,13 +129,14 @@ async function init(): Promise<() => void> {
       let device = '';
       for (let i = 0; i < order.length; i += BATCH) {
         if (index !== mine) return; // superseded by a newer index
-        statusEl.textContent = `Indexing ${i}/${order.length}`;
+        statusEl.textContent = 'Indexing…';
         const ids = order.slice(i, i + BATCH);
         const r = await send<IndexResponse>({ type: 'index', indexId: mine.id, ids, texts: ids.map((id) => texts[id]) });
         if ('error' in r) throw new Error(r.error);
         device = r.device;
       }
       mine.ms = performance.now() - t0;
+      mine.ready = true;
       if (index === mine && !input.value.trim()) statusEl.textContent = `Indexed ${texts.length} chunks in ${mine.ms.toFixed(0)} ms (${device})`;
     })();
     mine.done.catch(() => { if (index === mine) index = null; });
@@ -171,6 +147,7 @@ async function init(): Promise<() => void> {
     try {
       await ensureIndex();
       if (mySeq !== seq || !index) return;
+      statusEl.textContent = 'Searching…';
       const r = await send<QueryResponse>({ type: 'query', indexId: index.id, query });
       if (mySeq !== seq) return; // the user kept typing
       if ('error' in r) throw new Error(r.error);
@@ -178,18 +155,17 @@ async function init(): Promise<() => void> {
       const caches = qt.map(() => new Map<string, number>());
       const fuzzy = chunks.map((c) => fuzzyMatch(qt, c.tokens, caches).score);
       const hybrid = hybridScores(r.scores, fuzzy, settings.weight);
-      // A result needs a good enough cosine score. Literal matches of the query always pass.
       results = chunks
         .map((c, i): Result => ({ ranges: [[c.block, c.start, c.end]], chunk: i, fuzzy: fuzzy[i], semantic: r.scores[i], hybrid: hybrid[i] }))
-        .filter((x) => x.semantic! >= settings.threshold || x.fuzzy >= LITERAL_MATCH)
-        .sort((x, y) => y.hybrid! - x.hybrid!)
+        .filter((x) => isShown(x.semantic, x.fuzzy, settings.threshold))
+        .sort((x, y) => y.hybrid - x.hybrid)
         .slice(0, MAX_RESULTS);
       current = 0;
       render();
       const took = `${(performance.now() - typedAt).toFixed(0)} ms`;
       statusEl.textContent = results.length ? (settings.dev ? `${took}, model ${r.ms.toFixed(0)} ms, index ${index.ms.toFixed(0)} ms` : '') : 'No good match';
     } catch (e) {
-      if (mySeq === seq) statusEl.textContent = `Semantic search failed: ${e instanceof Error ? e.message : e}`;
+      if (mySeq === seq) statusEl.textContent = `Search failed: ${e instanceof Error ? e.message : e}`;
     }
   }
 
@@ -204,26 +180,21 @@ async function init(): Promise<() => void> {
       statusEl.textContent = '';
       return render();
     }
-    // Word results show at once. In semantic mode they are a preview until the model answers.
-    results = wordSearch(query);
-    current = 0;
-    render();
-    if (settings.mode === 'word') {
-      statusEl.textContent = results.length ? '' : 'No match';
-      return;
-    }
-    statusEl.textContent = 'Searching…';
+    // Highlights of the previous answer stay in place until the model answers.
+    statusEl.textContent = index?.ready ? 'Searching…' : 'Indexing…';
     timer = window.setTimeout(() => void semanticSearch(query, mySeq), DEBOUNCE_MS);
   }
 
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
     chunks = buildChunks(blocks, settings.minS, settings.maxS);
-    if (settings.mode === 'semantic') ensureIndex().catch((e) => { statusEl.textContent = `Indexing failed: ${e.message}`; });
+    // Results point into the old chunks.
+    results = [];
+    render(false);
+    ensureIndex().catch((e) => { statusEl.textContent = `Indexing failed: ${e.message}`; });
   }
 
   function syncUi(): void {
-    modeButtons.forEach((b) => b.classList.toggle('on', b.dataset.mode === settings.mode));
     devEl.hidden = !settings.dev;
     sliders.forEach((s) => {
       const key = s.name as 'threshold' | 'minS' | 'maxS' | 'weight';
@@ -259,14 +230,6 @@ async function init(): Promise<() => void> {
   $('next').onclick = () => step(1);
   $('prev').onclick = () => step(-1);
   $('close').onclick = close;
-  modeButtons.forEach((b) => (b.onclick = () => {
-    settings.mode = b.dataset.mode as Mode;
-    save();
-    syncUi();
-    reindex();
-    input.focus();
-    search();
-  }));
   sliders.forEach((s) => s.addEventListener('input', () => {
     const key = s.name as 'threshold' | 'minS' | 'maxS' | 'weight';
     settings[key] = Number(s.value);

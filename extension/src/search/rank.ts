@@ -19,6 +19,15 @@ export function hybridScores(semantic: number[], fuzzy: number[], weight: number
   return s.map((x, i) => weight * x + (1 - weight) * f[i]);
 }
 
+// Fuzzy score from which a chunk is shown even below the score threshold. One typo in a word of
+// five or more letters scores at least 0.8, and so does a query whose words are all on the page.
+export const STRONG_FUZZY = 0.8;
+
+// A result needs a good enough semantic score, or a strong fuzzy score.
+export function isShown(semantic: number, fuzzy: number, threshold: number): boolean {
+  return semantic >= threshold || fuzzy >= STRONG_FUZZY;
+}
+
 // Ties count against the gold chunk, so an all-zero score is a miss and not a free rank 1.
 export function rankOf(scores: number[], gold: number): number {
   let r = 1;

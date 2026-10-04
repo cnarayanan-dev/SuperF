@@ -18,8 +18,8 @@ The model is fetched once at build time and bundled. The extension itself never 
 ## Use
 
 - Cmd+Shift+K (or the toolbar icon) opens and closes the overlay.
-- `Word` finds exact text like Cmd+F. If nothing matches exactly, it falls back to typo-tolerant word matching.
-- `Semantic` ranks passages by meaning, mixed with the fuzzy word score.
+- Type a query. Passages are ranked by meaning, mixed with the fuzzy word score, so typos still match.
+- For exact matching use the browser's own Cmd+F.
 - Enter and Shift+Enter move between results, best first. Esc closes.
 - Alt+D inside the overlay toggles the dev panel: threshold, weight and sentence sliders, plus raw scores per result.
 

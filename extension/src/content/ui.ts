@@ -14,13 +14,7 @@ export const OVERLAY_HTML = `
     <button id="next" title="Next (Enter)">&#8595;</button>
     <button id="close" title="Close (Esc)">&#10005;</button>
   </div>
-  <div class="row">
-    <div class="seg">
-      <button data-mode="word">Word</button>
-      <button data-mode="semantic">Semantic</button>
-    </div>
-    <span id="status"></span>
-  </div>
+  <div class="row"><span id="status"></span></div>
   <div id="dev" hidden>
     <label>Score threshold <input type="range" name="threshold" min="0" max="1" step="0.01"><output></output></label>
     <label>Semantic weight <input type="range" name="weight" min="0" max="1" step="0.05"><output></output></label>
@@ -51,9 +45,7 @@ button {
   border: 1px solid transparent; border-radius: 6px; padding: 3px 7px;
 }
 button:hover { background: rgba(128, 128, 128, .18); }
-.seg { display: flex; border: 1px solid #d0d7de; border-radius: 6px; overflow: hidden; }
-.seg button { border-radius: 0; padding: 2px 10px; }
-.seg button.on { background: #0969da; color: #fff; }
+.row:has(#status:empty) { display: none; }
 #status { flex: 1; text-align: right; color: #656d76; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dev { margin-top: 8px; padding-top: 8px; border-top: 1px solid #d0d7de; }
 #dev[hidden] { display: none; }
@@ -65,7 +57,7 @@ output { text-align: right; font-variant-numeric: tabular-nums; }
 #list b { display: block; font-weight: 600; color: #656d76; }
 @media (prefers-color-scheme: dark) {
   .box { color: #e6edf3; background: #22272e; border-color: #444c56; }
-  #q, .seg, #dev { border-color: #444c56; }
+  #q, #dev { border-color: #444c56; }
   #count, #status, #list b { color: #9198a1; }
 }
 `;

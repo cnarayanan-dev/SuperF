@@ -42,25 +42,77 @@ const check = async (label, query, expected) => {
   else assert.match(got, expected, label);
 };
 
+const shadowEval = (fn, arg) => page.evaluate(`(${fn})(document.querySelector('#semantic-find-host').shadowRoot, ${JSON.stringify(arg)})`);
+const highlighted = () => page.evaluate(() => [...CSS.highlights.values()].reduce((n, h) => n + h.size, 0));
+
 try {
+  // A setting stored by an earlier build, which still had the Word mode.
+  await sw.evaluate(() => chrome.storage.local.set({ settings: { mode: 'word', threshold: 0.35, minS: 1, maxS: 2, weight: 0.7, dev: false } }));
   await toggle();
   await input.waitFor();
+  assert.equal(await page.locator('#semantic-find-host [data-mode]').count(), 0, 'no mode switch');
+  assert.equal(await page.locator('#semantic-find-host button', { hasText: /^(Word|Semantic)$/ }).count(), 0, 'no mode buttons');
+  assert.equal('mode' in (await sw.evaluate(() => chrome.storage.local.get('settings'))).settings, false, 'stored mode is gone');
+
+  // First search on the page: nothing is highlighted while the page is being indexed.
+  await input.fill('rollback');
+  const duringIndexing = await page.waitForFunction(() => {
+    const text = document.querySelector('#semantic-find-host').shadowRoot.getElementById('status').textContent;
+    return text === 'Indexing…' && { n: [...CSS.highlights.values()].reduce((n, h) => n + h.size, 0) };
+  }, null, { polling: 'raf' });
+  assert.equal((await duringIndexing.jsonValue()).n, 0, 'no highlight while indexing');
+
   await check('exact', 'rollback', /rollback/i);
   await check('typo', 'bandwitdh', /bandwidth/);
   await check('hidden', 'optimization', null);
+  assert.equal(await status.textContent(), 'No good match');
   await check('inline', 'relay login to', /relay login to/);
 
-  await page.locator('#semantic-find-host [data-mode=semantic]').click();
-  await input.press('Alt+KeyD'); // dev panel shows timings
+  await input.press('Alt+KeyD'); // dev panel shows timings and raw scores
   await check('synonym', 'undo a release', /rollback/);
+  assert.ok(await page.locator('#semantic-find-host #dev').isVisible(), 'dev panel opens');
+  assert.match(await page.locator('#semantic-find-host #list li').first().textContent(), /cos .* fuzzy .* hybrid /);
   await check('paraphrase', 'how to delete my account', /close your account/);
   await check('paraphrase', 'why did my build get killed', /ran out of memory/);
   await check('paraphrase', 'where do I put my API keys safely', /environment variables/);
+
+  // While a new query is pending, the highlights of the previous answer stay.
+  const pending = await shadowEval((root, q) => {
+    const el = root.getElementById('q');
+    el.value = q;
+    el.dispatchEvent(new Event('input'));
+    return { status: root.getElementById('status').textContent, current: [...CSS.highlights.get('sf-current') ?? []].join(' ') };
+  }, 'undo a release');
+  assert.equal(pending.status, 'Searching…');
+  assert.match(pending.current, /environment variables/, 'previous highlight stays while pending');
+  await check('synonym', 'undo a release', /rollback/);
+
+  // Answers to an older query are dropped when the user keeps typing.
+  await input.fill('how to delete my account');
+  await page.waitForTimeout(160); // past the debounce, the model call is in flight
+  await check('stale', 'why did my build get killed', /ran out of memory/);
+  await page.waitForTimeout(400);
+  assert.match(await currentText(), /ran out of memory/, 'a late answer to the older query is dropped');
+
   await check('junk', 'best pizza in naples', null);
   assert.equal(await status.textContent(), 'No good match');
 
-  await input.fill('rollback');
+  // Enter and Shift+Enter cycle through the results.
+  await check('cycle', 'undo a release', /rollback/);
+  const total = (await count.textContent()).split('/')[1];
+  assert.ok(Number(total) >= 2, 'cycle query needs two results');
   await input.press('Enter');
+  assert.equal(await count.textContent(), `2/${total}`);
+  assert.doesNotMatch(await currentText(), /rollback to restore/);
+  await input.press('Shift+Enter');
+  assert.equal(await count.textContent(), `1/${total}`);
+
+  // An empty query clears the highlights.
+  await input.fill('');
+  assert.equal(await highlighted(), 0, 'empty query clears highlights');
+  assert.equal(await count.textContent(), '');
+
+  await check('exact', 'rollback', /rollback/i);
   await input.press('Escape');
   assert.equal(await page.locator('#semantic-find-host').isVisible(), false);
   assert.equal(await page.evaluate(() => CSS.highlights.size), 0);

@@ -13,9 +13,9 @@ Success means:
 ## Decisions for v1
 
 - **English only.** German and other languages come later.
-- **Mode switch in the overlay**: `Word` (exact and fuzzy, like Cmd+F) and `Semantic` (hybrid ranking). The user picks per search.
-- **Search per keystroke.** Fuzzy results update instantly. The semantic query runs after a short debounce (about 150 ms). Budget: results visible within 250 ms of the last keystroke.
-- **Score threshold.** Only show semantic results with cosine similarity of at least 0.35 (default for MiniLM, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the threshold is set per model in `extension/src/model.ts` and the benchmark reports a calibrated value for each. The first plan was 0.6, but that hid 21 of 25 correct MiniLM answers on the model-pick test set. Passages that contain the query words literally are shown even below the threshold.
+- **Semantic search only.** The overlay has no mode switch and no `Word` mode. Cmd+F stays the browser's own find and is the fallback for exact matching.
+- **Search per keystroke.** Each keystroke starts one semantic search after a short debounce (about 150 ms). Until the model answers, the status line shows "Indexing…" or "Searching…" and the highlights of the previous answer stay in place. On the first search on a page nothing is highlighted until the answer arrives. An empty query clears the highlights. Answers to an older query are dropped. Budget: results visible within 250 ms of the last keystroke.
+- **Score threshold.** Only show semantic results with cosine similarity of at least 0.35 (default for MiniLM, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the threshold is set per model in `extension/src/model.ts` and the benchmark reports a calibrated value for each. The first plan was 0.6, but that hid 21 of 25 correct MiniLM answers on the model-pick test set. Passages with a strong fuzzy score (0.8 or more, `STRONG_FUZZY` in `extension/src/search/rank.ts`) are shown even below the threshold. That covers literal matches and typo queries like "bandwitdh", which `Word` mode used to serve.
 - **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
 - **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
 - **Tuning panel (dev mode).** Sliders in the overlay for: score threshold, minimum and maximum highlight length (in sentences), and fuzzy vs semantic weight. Show the raw score next to each result. This is for testing and building intuition, hidden for normal users.
@@ -48,7 +48,7 @@ Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available a
 - Shortcut (Cmd+Shift+K, since Chrome reserves Cmd+F, and Cmd+Shift+F and Cmd+Shift+J are blocked) opens a search overlay on the current page.
 - Fuzzy-only search first, then add semantic ranking.
 - Highlight matches, Enter and Shift+Enter to cycle, Esc to close.
-- Mode switch (Word / Semantic) and the dev tuning panel with sliders (see Decisions).
+- Semantic search only, no mode switch. The dev tuning panel with sliders (see Decisions).
 
 ### 3. Pick 3 models for the first batch
 | Model | Why | Approx. size (q8) |
@@ -104,7 +104,7 @@ Load it:
 Use it:
 
 - Open any normal web page and press Cmd+Shift+K, or click the extension icon in the toolbar. It does not run on `chrome://` pages, the Chrome Web Store or the PDF viewer.
-- Type a query. Switch between `Word` and `Semantic` in the overlay.
+- Type a query. Semantic search runs as you type. The status line shows "Indexing…" or "Searching…" until the result is there.
 - Enter and Shift+Enter move between results. Esc closes.
 - Alt+D inside the overlay toggles the dev panel with sliders and raw scores.
 - If the shortcut does nothing, check `chrome://extensions/shortcuts`. Another extension may hold the same keys. Chrome only applies a changed default shortcut on a fresh install, so after changing it in the manifest either set it there by hand or remove the extension and load it again.
