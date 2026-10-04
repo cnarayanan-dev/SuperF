@@ -56,7 +56,7 @@ try {
   assert.equal(await page.locator('#semantic-find-host [data-mode]').count(), 0, 'no mode switch');
   assert.equal(await page.locator('#semantic-find-host button', { hasText: /^(Word|Semantic)$/ }).count(), 0, 'no mode buttons');
   const storedKeys = Object.keys((await sw.evaluate(() => chrome.storage.local.get('settings'))).settings);
-  assert.ok(!storedKeys.includes('mode') && !storedKeys.includes('dev'), 'stored mode and dev are gone');
+  assert.deepEqual(storedKeys.filter((k) => ['mode', 'dev', 'minS', 'maxS'].includes(k)), [], 'stored keys of earlier builds are gone');
 
   // First search on the page: nothing is highlighted while the page is being indexed.
   await input.fill('rollback');
@@ -129,6 +129,49 @@ try {
   assert.ok(await panel.isVisible());
   const afterReset = (await sw.evaluate(() => chrome.storage.local.get('settings'))).settings;
   assert.deepEqual([afterReset.threshold, afterReset.weight, afterReset.panel], [0.35, 0.7, true]);
+
+  // Chunk length and overlap re-index when the slider is released, not at every step.
+  const indexed = async () => {
+    const h = await page.waitForFunction(() => {
+      const root = document.querySelector('#semantic-find-host').shadowRoot;
+      const m = /^(\d+) chunks, indexed in/.exec(root.getElementById('stats').textContent);
+      return m && !/Searching|Indexing/.test(root.getElementById('status').textContent) && Number(m[1]);
+    });
+    return h.jsonValue();
+  };
+  const drag = (name, value, release) => shadowEval((root, [name, value, release]) => {
+    const el = root.querySelector(`input[name=${name}]`);
+    el.value = value;
+    el.dispatchEvent(new Event('input'));
+    if (release) el.dispatchEvent(new Event('change'));
+    const shown = (n) => root.querySelector(`input[name=${n}]`).nextElementSibling.textContent;
+    return { chunkLength: shown('chunkLength'), overlap: shown('overlap'), stats: root.getElementById('stats').textContent };
+  }, [name, value, release]);
+  assert.equal(await panel.locator('input[name=minS], input[name=maxS]').count(), 0, 'no min and max sentence sliders');
+  const twoSentences = await indexed();
+  const dragged = await drag('chunkLength', '1', false);
+  assert.equal(dragged.chunkLength, '1');
+  assert.match(dragged.stats, new RegExp(`^${twoSentences} chunks, indexed in`), 'dragging does not re-index');
+  await drag('chunkLength', '1', true);
+  const oneSentence = await indexed();
+  assert.ok(oneSentence > twoSentences, `chunk length 1 gives more chunks (${oneSentence} > ${twoSentences})`);
+  await check('chunk 1', 'undo a release', /rollback/);
+  assert.doesNotMatch(await currentText(), /Rollbacks complete/, 'a chunk of length 1 is one sentence');
+
+  // Overlap is always smaller than the chunk length.
+  assert.equal((await drag('overlap', '2', true)).overlap, '0');
+  await drag('chunkLength', '3', true);
+  assert.equal((await drag('overlap', '2', true)).overlap, '2');
+  assert.equal((await drag('chunkLength', '2', true)).overlap, '1', 'lowering chunk length lowers overlap');
+  await indexed();
+  // With overlap 1 the last sentence of a paragraph of three shares a chunk with the one before it.
+  await check('overlap', 'where are tokens stored', /approve the session\. Tokens are stored/);
+  await input.fill('');
+
+  await panel.locator('#reset').click();
+  assert.equal(await panel.locator('input[name=chunkLength]').inputValue(), '2');
+  assert.equal(await panel.locator('input[name=overlap]').inputValue(), '0');
+  assert.equal(await indexed(), twoSentences, 'Reset restores the chunk count');
 
   await check('paraphrase', 'how to delete my account', /close your account/);
   await check('paraphrase', 'why did my build get killed', /ran out of memory/);

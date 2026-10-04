@@ -1,13 +1,14 @@
 // Content script: overlay UI, search orchestration and highlighting.
 import { fuzzyMatch, tokenize } from '../search/fuzzy.ts';
+import { chunkRanges, clampOverlap } from '../search/chunks.ts';
 import { hybridScores, isShown } from '../search/rank.ts';
 import type { ErrorResponse, IndexResponse, QueryResponse, Request } from '../messages.ts';
 import { MODEL } from '../model.ts';
 import { buildChunks, extractBlocks, toRange, type Block, type Chunk } from './dom.ts';
 import { OVERLAY_CSS, OVERLAY_HTML, PAGE_CSS } from './ui.ts';
 
-interface Settings { threshold: number; minS: number; maxS: number; weight: number; panel: boolean }
-type SliderKey = 'threshold' | 'minS' | 'maxS' | 'weight';
+interface Settings { threshold: number; weight: number; chunkLength: number; overlap: number; panel: boolean }
+type SliderKey = 'threshold' | 'weight' | 'chunkLength' | 'overlap';
 interface Result {
   ranges: [block: number, start: number, end: number][];
   chunk: number;
@@ -16,12 +17,12 @@ interface Result {
   hybrid: number;
 }
 
-const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, minS: 1, maxS: 2, weight: 0.7, panel: false };
+const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, chunkLength: 2, overlap: 0, panel: false };
 const DEBOUNCE_MS = 150;
 const BATCH = 32;
 const MAX_RESULTS = 10;
 
-// Stored keys from earlier builds (like "mode" and "dev") are ignored, missing ones fall back to the defaults.
+// Stored keys from earlier builds (like "mode", "dev" or "minS") are ignored, missing ones fall back to the defaults.
 function loadSettings(stored: Record<string, unknown> = {}): Settings {
   const out: Record<string, unknown> = { ...DEFAULTS };
   for (const k in out) if (typeof stored[k] === typeof out[k]) out[k] = stored[k];
@@ -125,7 +126,7 @@ async function init(): Promise<() => void> {
 
   // ---------- semantic search ----------
   function ensureIndex(): Promise<void> {
-    const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${settings.minS}:${settings.maxS}`;
+    const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${settings.chunkLength}:${settings.overlap}`;
     if (index?.sig === sig) return index.done;
     const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0, device: '', ready: false };
     index = mine;
@@ -158,7 +159,7 @@ async function init(): Promise<() => void> {
     const { semantic, fuzzy } = answer;
     const hybrid = hybridScores(semantic, fuzzy, settings.weight);
     results = chunks
-      .map((c, i): Result => ({ ranges: [[c.block, c.start, c.end]], chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
+      .map((c, i): Result => ({ ranges: chunkRanges(c.spans), chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
       .filter((x) => isShown(x.semantic, x.fuzzy, settings.threshold))
       .sort((x, y) => y.hybrid - x.hybrid)
       .slice(0, MAX_RESULTS);
@@ -204,7 +205,7 @@ async function init(): Promise<() => void> {
 
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
-    chunks = buildChunks(blocks, settings.minS, settings.maxS);
+    chunks = buildChunks(blocks, settings.chunkLength, settings.overlap);
     // Results and scores point into the old chunks.
     results = [];
     answer = null;
@@ -263,16 +264,19 @@ async function init(): Promise<() => void> {
     reindex();
     search();
   };
-  sliders.forEach((s) => s.addEventListener('input', () => {
+  sliders.forEach((s) => {
     const key = s.name as SliderKey;
-    settings[key] = Number(s.value);
-    if (settings.minS > settings.maxS) settings[key === 'minS' ? 'maxS' : 'minS'] = settings[key];
-    save();
-    syncUi();
-    if (key === 'threshold' || key === 'weight') return answer ? rank() : search();
-    reindex();
-    search();
-  }));
+    const rechunks = key === 'chunkLength' || key === 'overlap';
+    s.addEventListener('input', () => {
+      settings[key] = Number(s.value);
+      settings.overlap = clampOverlap(settings.chunkLength, settings.overlap);
+      save();
+      syncUi();
+      // Threshold and weight re-rank at once. Chunk settings wait for the release of the slider.
+      if (!rechunks) return answer ? rank() : search();
+    });
+    if (rechunks) s.addEventListener('change', () => { reindex(); search(); });
+  });
 
   return () => (host.style.display === 'none' ? open() : close());
 }
