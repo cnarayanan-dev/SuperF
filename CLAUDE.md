@@ -6,9 +6,21 @@ Build a Chrome extension that improves Cmd+F. It finds the word or passage a use
 
 Success means:
 - Finds the right passage for typo, synonym and paraphrase queries where Cmd+F fails
-- Indexes a typical article page in under 1 second
-- Answers a query in under 100 ms after indexing
+- Indexes a 5,000 to 10,000 word page in under 1 second on an Apple M-series MacBook (WebGPU)
+- Shows results within 250 ms of the last keystroke (search runs as you type)
 - Users find things faster than with Cmd+F (measured, not assumed)
+
+## Decisions for v1
+
+- **English only.** German and other languages come later.
+- **Mode switch in the overlay**: `Word` (exact and fuzzy, like Cmd+F) and `Semantic` (hybrid ranking). The user picks per search.
+- **Search per keystroke.** Fuzzy results update instantly. The semantic query runs after a short debounce (about 150 ms). Budget: results visible within 250 ms of the last keystroke.
+- **Score threshold.** Only show semantic results above a minimum score. No result is better than a wrong one. Show "no good match" instead. Cosine scores are not comparable across models, so the threshold is calibrated per model on the benchmark, not fixed by hand. Use an absolute floor plus a relative rule (keep results within X of the top score).
+- **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
+- **Tuning panel (dev mode).** Sliders in the overlay for: score threshold, minimum and maximum highlight length (in sentences), and fuzzy vs semantic weight. Show the raw score next to each result. This is for testing and building intuition, hidden for normal users.
+- **Shortcut**: Cmd+Shift+F for v1.
+- **Model weights are bundled** in the extension. No download, no host permission, works offline from the first use.
+- **Target hardware**: Apple M-series MacBook, recent Chrome. Report WASM numbers as well, but WebGPU on M-series is the target.
 
 ## How it works (short version)
 
@@ -33,19 +45,21 @@ Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available a
 - Shortcut (Cmd+Shift+F, since Chrome reserves Cmd+F) opens a search overlay on the current page.
 - Fuzzy-only search first, then add semantic ranking.
 - Highlight matches, Enter and Shift+Enter to cycle, Esc to close.
+- Mode switch (Word / Semantic) and the dev tuning panel with sliders (see Decisions).
 
 ### 3. Pick 3 models for the first batch
 | Model | Why | Approx. size (q8) |
 |---|---|---|
 | `Xenova/all-MiniLM-L6-v2` | Classic fast baseline, 384 dims | ~23 MB |
 | `Xenova/bge-small-en-v1.5` | Stronger English retrieval at similar size | ~34 MB |
-| `Xenova/multilingual-e5-small` | Covers German and other languages | ~118 MB |
+| `Xenova/multilingual-e5-small` | Reference only. v1 is English, so not a default candidate | ~118 MB |
 
 Plus a **no-model baseline** (fuzzy only) to prove the model earns its cost.
 Note: e5 models need `query: ` and `passage: ` prefixes. bge works best with its query instruction prefix. Check each model card.
 
 ### 4. Test cases and automated benchmark
-- Collect 15 to 20 saved HTML pages: docs, news, Wikipedia, long-form articles, a few German pages.
+- Collect 15 to 20 saved English HTML pages: docs, news, Wikipedia, long-form articles.
+- Page size scenarios for speed tests: about 1,000, 5,000, 10,000 and 20,000 words.
 - For each page, write queries with a labelled correct passage, in five categories:
   - `exact`: the literal word
   - `typo`: misspelled ("optmization")
@@ -53,6 +67,10 @@ Note: e5 models need `query: ` and `passage: ` prefixes. bge works best with its
   - `synonym`: different word, same meaning ("cost" for "price")
   - `paraphrase`: describes the content ("how to cancel my subscription")
 - Store as JSON in `bench/cases/`.
+- Label the answer as a text span (character offsets in the extracted text), not a chunk id, so labels survive chunking changes.
+- What counts as a hit is itself tested: compare "result overlaps the answer span", "result contains the full span" and "result starts within N characters". Pick the rule that best matches what users accept.
+- Include hard queries with no word overlap with the answer, otherwise fuzzy search looks better than it is.
+- Calibrate the score threshold per model: pick the value that best separates correct from wrong top results (for example best F1), and report it.
 - Metrics per model and per category: Recall@1, Recall@5, MRR.
 - Speed metrics: model load time (cold and cached), page indexing time, query latency, memory, download size.
 - Run in real Chrome via Playwright so numbers reflect WebGPU and WASM as users experience them.
@@ -66,7 +84,7 @@ Note: e5 models need `query: ` and `passage: ` prefixes. bge works best with its
 ## Proposed repo structure
 
 ```
-semantic-find/
+SuperF/              # repo root
   CLAUDE.md
   README.md
   docs/
@@ -78,7 +96,7 @@ semantic-find/
       offscreen/      # model loading and embedding
       background/     # service worker, shortcut handling, messaging
       search/         # fuzzy scoring, cosine ranking, hybrid merge
-    models/           # optional bundled weights
+    models/           # bundled model weights
   bench/
     pages/            # saved HTML test pages
     cases/            # JSON query sets with labelled answers
@@ -97,6 +115,8 @@ semantic-find/
 - `offscreen`: run the model outside the page
 - `content_security_policy.extension_pages`: include `'wasm-unsafe-eval'`
 - No `<all_urls>` host permission in v1. Revisit only if pre-indexing on page load proves necessary.
+- No host permission for model download, because weights are bundled.
+- One offscreen document serves all tabs. It loads the model once and answers requests tagged with the tab id.
 
 ## Milestones
 
@@ -119,10 +139,10 @@ semantic-find/
 
 ## Open questions
 
-- Bundle model weights or download on first use and cache?
 - Chunk size and overlap: test 1 sentence vs 2 to 3 sentences
 - How to weight fuzzy vs semantic scores (fixed, or by query length)
-- Should German support be a v1 requirement? If yes, multilingual-e5-small becomes the likely default
+- Replace multilingual-e5-small with a third English model (for example gte-small)?
+- What happens to an in-flight semantic query when the user keeps typing (cancel or drop stale results)?
 - Handling dynamic pages (infinite scroll, SPAs): re-index on DOM changes?
 
 ## Working conventions for Claude Code
