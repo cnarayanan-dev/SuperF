@@ -19,7 +19,7 @@ Success means:
 - **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
 - **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
 - **Tuning panel (dev mode).** Sliders in the overlay for: score threshold, minimum and maximum highlight length (in sentences), and fuzzy vs semantic weight. Show the raw score next to each result. This is for testing and building intuition, hidden for normal users.
-- **Shortcut**: Cmd+Shift+J for v1 (Ctrl+Shift+J on Windows and Linux). Cmd+Shift+F was the first choice but is blocked in Chrome, so it was dropped.
+- **Shortcut**: Cmd+Shift+K for v1 (Ctrl+Shift+K on Windows and Linux). Cmd+Shift+F and Cmd+Shift+J were tried first but are blocked in Chrome, so they were dropped.
 - **Model for v1**: `Xenova/all-MiniLM-L6-v2`.
 - **Model weights are bundled** in the extension (decided). `npm run fetch-model` downloads them from Hugging Face once at build time. No download at runtime, no host permission, works offline from the first use.
 - **Weights are fp16** (45 MB for MiniLM), not q8. WebGPU cannot speed up q8 weights. On a 12,300 word page, indexing took 1.1 s with fp16 on WebGPU and 5.8 s with q8 on WASM. The same fp16 file also runs on the WASM fallback.
@@ -45,7 +45,7 @@ Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available a
 
 ### 2. Extension demo (MVP)
 - Manifest V3 extension, loadable unpacked.
-- Shortcut (Cmd+Shift+J, since Chrome reserves Cmd+F and Cmd+Shift+F is blocked) opens a search overlay on the current page.
+- Shortcut (Cmd+Shift+K, since Chrome reserves Cmd+F, and Cmd+Shift+F and Cmd+Shift+J are blocked) opens a search overlay on the current page.
 - Fuzzy-only search first, then add semantic ranking.
 - Highlight matches, Enter and Shift+Enter to cycle, Esc to close.
 - Mode switch (Word / Semantic) and the dev tuning panel with sliders (see Decisions).
@@ -103,7 +103,7 @@ Load it:
 
 Use it:
 
-- Open any normal web page and press Cmd+Shift+J, or click the extension icon in the toolbar. It does not run on `chrome://` pages, the Chrome Web Store or the PDF viewer.
+- Open any normal web page and press Cmd+Shift+K, or click the extension icon in the toolbar. It does not run on `chrome://` pages, the Chrome Web Store or the PDF viewer.
 - Type a query. Switch between `Word` and `Semantic` in the overlay.
 - Enter and Shift+Enter move between results. Esc closes.
 - Alt+D inside the overlay toggles the dev panel with sliders and raw scores.

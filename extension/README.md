@@ -1,6 +1,6 @@
 # Semantic Find extension
 
-Manifest V3 extension. Cmd+Shift+J opens a search overlay on the current page.
+Manifest V3 extension. Cmd+Shift+K opens a search overlay on the current page.
 
 ## Build and load
 
@@ -17,7 +17,7 @@ The model is fetched once at build time and bundled. The extension itself never 
 
 ## Use
 
-- Cmd+Shift+J (or the toolbar icon) opens and closes the overlay.
+- Cmd+Shift+K (or the toolbar icon) opens and closes the overlay.
 - `Word` finds exact text like Cmd+F. If nothing matches exactly, it falls back to typo-tolerant word matching.
 - `Semantic` ranks passages by meaning, mixed with the fuzzy word score.
 - Enter and Shift+Enter move between results, best first. Esc closes.

@@ -6,10 +6,10 @@
   "minimum_chrome_version": "116",
   "permissions": ["activeTab", "scripting", "storage", "offscreen"],
   "background": { "service_worker": "background.js", "type": "module" },
-  "action": { "default_title": "Semantic Find (Cmd+Shift+J)" },
+  "action": { "default_title": "Semantic Find (Cmd+Shift+K)" },
   "commands": {
     "open-search": {
-      "suggested_key": { "default": "Ctrl+Shift+J", "mac": "Command+Shift+J" },
+      "suggested_key": { "default": "Ctrl+Shift+K", "mac": "Command+Shift+K" },
       "description": "Open Semantic Find on the current page"
     }
   },
