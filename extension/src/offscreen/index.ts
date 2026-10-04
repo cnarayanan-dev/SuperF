@@ -50,7 +50,6 @@ interface Index {
   sentences: Map<number, Float32Array[]>;
   query?: { text: string; vec: Float32Array }; // the last query, so the sentence request does not embed it again
 }
-const BATCH = 32;
 // Per tab, the indexes by id, least recently used first. A tab has one index per configuration it tried.
 const tabs = new Map<number, Map<string, Index>>();
 
@@ -85,8 +84,8 @@ async function handle(msg: Envelope): Promise<unknown> {
   const { sentences } = entry;
   const missing = msg.chunks.filter((c) => !sentences.has(c.chunk));
   const texts = missing.flatMap((c) => c.texts);
-  const vecs: Float32Array[] = [];
-  for (let i = 0; i < texts.length; i += BATCH) vecs.push(...(await embed(texts.slice(i, i + BATCH))));
+  // At most 10 results of 6 sentences each, so one call is enough.
+  const vecs = texts.length ? await embed(texts) : [];
   let at = 0;
   for (const c of missing) {
     sentences.set(c.chunk, vecs.slice(at, at + c.texts.length));

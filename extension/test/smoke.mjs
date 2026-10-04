@@ -315,7 +315,10 @@ try {
   await check('exact', 'rollback', /rollback/i);
 
   // Only a few indexes are kept per tab. The least recently used one is dropped.
-  for (const n of [1, 3, 5, 6]) await setChunkLength(n);
+  await setChunkLength(1);
+  await setChunkLength(3);
+  await setChunkLength(5);
+  await setChunkLength(6);
   assert.doesNotMatch(await setChunkLength(2), /reused/, 'after four other configurations chunk length 2 is indexed again');
   assert.match(await setChunkLength(6), /reused/, 'the most recent ones are kept');
   await panel.locator('#reset').click();
