@@ -18,7 +18,7 @@ Success means:
 - **Score threshold.** Only show semantic results with cosine similarity of at least 0.35 (default for MiniLM, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the threshold is set per model in `extension/src/model.ts` and the benchmark reports a calibrated value for each. The first plan was 0.6, but that hid 21 of 25 correct MiniLM answers on the model-pick test set. Passages with a strong fuzzy score (0.8 or more, `STRONG_FUZZY` in `extension/src/search/rank.ts`) are shown even below the threshold. That covers literal matches and typo queries like "bandwitdh", which `Word` mode used to serve.
 - **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
 - **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
-- **Tuning panel (dev mode).** Sliders in the overlay for: score threshold, minimum and maximum highlight length (in sentences), and fuzzy vs semantic weight. Show the raw score next to each result. This is for testing and building intuition, hidden for normal users.
+- **Settings panel.** A Settings button in the overlay opens the settings panel inside the overlay. It has sliders for the score threshold, the semantic weight and the minimum and maximum sentences per chunk, plus a Reset button. It lists the results with semantic, fuzzy and blended score, and shows the chunk count, indexing time, device, keystroke to result time, model time and model name. Threshold and weight re-rank the last answer without a model call. Settings and the open state of the panel are stored locally and shared by all tabs. This is for testing and building intuition. There is no hidden dev panel and no Alt+D shortcut any more.
 - **Shortcut**: Cmd+Shift+K for v1 (Ctrl+Shift+K on Windows and Linux). Cmd+Shift+F and Cmd+Shift+J were tried first but are blocked in Chrome, so they were dropped.
 - **Model for v1**: `Xenova/all-MiniLM-L6-v2`.
 - **Model weights are bundled** in the extension (decided). `npm run fetch-model` downloads them from Hugging Face once at build time. No download at runtime, no host permission, works offline from the first use.
@@ -48,7 +48,7 @@ Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available a
 - Shortcut (Cmd+Shift+K, since Chrome reserves Cmd+F, and Cmd+Shift+F and Cmd+Shift+J are blocked) opens a search overlay on the current page.
 - Fuzzy-only search first, then add semantic ranking.
 - Highlight matches, Enter and Shift+Enter to cycle, Esc to close.
-- Semantic search only, no mode switch. The dev tuning panel with sliders (see Decisions).
+- Semantic search only, no mode switch. The settings panel with sliders (see Decisions).
 
 ### 3. Pick 3 models for the first batch
 | Model | Why | Approx. size (q8) |
@@ -106,7 +106,7 @@ Use it:
 - Open any normal web page and press Cmd+Shift+K, or click the extension icon in the toolbar. It does not run on `chrome://` pages, the Chrome Web Store or the PDF viewer.
 - Type a query. Semantic search runs as you type. The status line shows "Indexing…" or "Searching…" until the result is there.
 - Enter and Shift+Enter move between results. Esc closes.
-- Alt+D inside the overlay toggles the dev panel with sliders and raw scores.
+- The Settings button opens the settings panel with sliders, raw scores per result and timings. Reset restores the defaults.
 - If the shortcut does nothing, check `chrome://extensions/shortcuts`. Another extension may hold the same keys. Chrome only applies a changed default shortcut on a fresh install, so after changing it in the manifest either set it there by hand or remove the extension and load it again.
 
 After a code change, run `npm run build` again, click the reload icon on the extension card in `chrome://extensions`, and reload the page.

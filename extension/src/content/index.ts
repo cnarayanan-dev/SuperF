@@ -6,7 +6,8 @@ import { MODEL } from '../model.ts';
 import { buildChunks, extractBlocks, toRange, type Block, type Chunk } from './dom.ts';
 import { OVERLAY_CSS, OVERLAY_HTML, PAGE_CSS } from './ui.ts';
 
-interface Settings { threshold: number; minS: number; maxS: number; weight: number; dev: boolean }
+interface Settings { threshold: number; minS: number; maxS: number; weight: number; panel: boolean }
+type SliderKey = 'threshold' | 'minS' | 'maxS' | 'weight';
 interface Result {
   ranges: [block: number, start: number, end: number][];
   chunk: number;
@@ -15,12 +16,12 @@ interface Result {
   hybrid: number;
 }
 
-const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, minS: 1, maxS: 2, weight: 0.7, dev: false };
+const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, minS: 1, maxS: 2, weight: 0.7, panel: false };
 const DEBOUNCE_MS = 150;
 const BATCH = 32;
 const MAX_RESULTS = 10;
 
-// Stored keys from earlier builds (like "mode") are ignored, missing ones fall back to the defaults.
+// Stored keys from earlier builds (like "mode" and "dev") are ignored, missing ones fall back to the defaults.
 function loadSettings(stored: Record<string, unknown> = {}): Settings {
   const out: Record<string, unknown> = { ...DEFAULTS };
   for (const k in out) if (typeof stored[k] === typeof out[k]) out[k] = stored[k];
@@ -56,7 +57,8 @@ async function init(): Promise<() => void> {
 
   const $ = <T extends HTMLElement>(id: string) => shadow.getElementById(id) as T;
   const input = $<HTMLInputElement>('q');
-  const countEl = $('count'), statusEl = $('status'), devEl = $('dev'), listEl = $('list');
+  const countEl = $('count'), statusEl = $('status'), panelEl = $('panel'), listEl = $('list');
+  const settingsButton = $('settings'), statsEl = $('stats');
   const sliders = [...shadow.querySelectorAll<HTMLInputElement>('input[type=range]')];
 
   // ---------- state ----------
@@ -67,7 +69,9 @@ async function init(): Promise<() => void> {
   let seq = 0; // bumped on every new search, stale async answers are dropped
   let timer = 0;
   let typedAt = 0;
-  let index: { id: string; sig: string; done: Promise<void>; ms: number; ready: boolean } | null = null;
+  let index: { id: string; sig: string; done: Promise<void>; ms: number; device: string; ready: boolean } | null = null;
+  // The last model answer. Threshold and weight changes re-rank it without a model call.
+  let answer: { semantic: number[]; fuzzy: number[]; tookMs: number; modelMs: number } | null = null;
 
   const send = <T>(req: Request) =>
     chrome.runtime.sendMessage({ ...req, target: 'bg' }) as Promise<T | ErrorResponse>;
@@ -91,18 +95,22 @@ async function init(): Promise<() => void> {
       if (scroll) ranges[0].startContainer.parentElement?.scrollIntoView({ block: 'center', behavior: 'instant' });
     });
     CSS.highlights.set('sf-match', new Highlight(...all));
-    renderList();
+    renderPanel();
   }
 
-  function renderList(): void {
+  // The result list and the numbers in the settings panel. Costs nothing while the panel is closed.
+  function renderPanel(): void {
+    if (!settings.panel) return;
+    const indexed = index?.ready ? `, indexed in ${index.ms.toFixed(0)} ms (${index.device})` : '';
+    const timing = answer ? `\nResult in ${answer.tookMs.toFixed(0)} ms, model ${answer.modelMs.toFixed(0)} ms` : '';
+    statsEl.textContent = `${chunks.length} chunks${indexed}${timing}`;
     listEl.replaceChildren();
-    if (!settings.dev) return;
-    results.slice(0, 20).forEach((r, i) => {
+    results.forEach((r, i) => {
       const li = document.createElement('li');
       if (i === current) li.className = 'current';
       const text = chunks[r.chunk].text.replace(/\s+/g, ' ');
       const scoreEl = document.createElement('b');
-      scoreEl.textContent = `cos ${r.semantic.toFixed(2)} · fuzzy ${r.fuzzy.toFixed(2)} · hybrid ${r.hybrid.toFixed(2)}`;
+      scoreEl.textContent = `semantic ${r.semantic.toFixed(2)} · fuzzy ${r.fuzzy.toFixed(2)} · blended ${r.hybrid.toFixed(2)}`;
       li.append(scoreEl, ` ${text.slice(0, 90)}`);
       li.onclick = () => { current = i; render(); };
       listEl.append(li);
@@ -119,28 +127,44 @@ async function init(): Promise<() => void> {
   function ensureIndex(): Promise<void> {
     const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${settings.minS}:${settings.maxS}`;
     if (index?.sig === sig) return index.done;
-    const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0, ready: false };
+    const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0, device: '', ready: false };
     index = mine;
     const texts = chunks.map((c) => c.text);
     // Batches of similar length waste less time on padding.
     const order = texts.map((_, i) => i).sort((a, b) => texts[a].length - texts[b].length);
     mine.done = (async () => {
       const t0 = performance.now();
-      let device = '';
       for (let i = 0; i < order.length; i += BATCH) {
         if (index !== mine) return; // superseded by a newer index
         statusEl.textContent = 'Indexing…';
         const ids = order.slice(i, i + BATCH);
         const r = await send<IndexResponse>({ type: 'index', indexId: mine.id, ids, texts: ids.map((id) => texts[id]) });
         if ('error' in r) throw new Error(r.error);
-        device = r.device;
+        mine.device = r.device;
       }
       mine.ms = performance.now() - t0;
       mine.ready = true;
-      if (index === mine && !input.value.trim()) statusEl.textContent = `Indexed ${texts.length} chunks in ${mine.ms.toFixed(0)} ms (${device})`;
+      if (index !== mine) return;
+      if (!input.value.trim()) statusEl.textContent = '';
+      renderPanel();
     })();
     mine.done.catch(() => { if (index === mine) index = null; });
     return mine.done;
+  }
+
+  // Turns the last model answer into results with the current threshold and weight.
+  function rank(): void {
+    if (!answer) return;
+    const { semantic, fuzzy } = answer;
+    const hybrid = hybridScores(semantic, fuzzy, settings.weight);
+    results = chunks
+      .map((c, i): Result => ({ ranges: [[c.block, c.start, c.end]], chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
+      .filter((x) => isShown(x.semantic, x.fuzzy, settings.threshold))
+      .sort((x, y) => y.hybrid - x.hybrid)
+      .slice(0, MAX_RESULTS);
+    current = 0;
+    render();
+    statusEl.textContent = results.length ? '' : 'No good match';
   }
 
   async function semanticSearch(query: string, mySeq: number): Promise<void> {
@@ -154,16 +178,8 @@ async function init(): Promise<() => void> {
       const qt = tokenize(query).map((t) => t.t);
       const caches = qt.map(() => new Map<string, number>());
       const fuzzy = chunks.map((c) => fuzzyMatch(qt, c.tokens, caches).score);
-      const hybrid = hybridScores(r.scores, fuzzy, settings.weight);
-      results = chunks
-        .map((c, i): Result => ({ ranges: [[c.block, c.start, c.end]], chunk: i, fuzzy: fuzzy[i], semantic: r.scores[i], hybrid: hybrid[i] }))
-        .filter((x) => isShown(x.semantic, x.fuzzy, settings.threshold))
-        .sort((x, y) => y.hybrid - x.hybrid)
-        .slice(0, MAX_RESULTS);
-      current = 0;
-      render();
-      const took = `${(performance.now() - typedAt).toFixed(0)} ms`;
-      statusEl.textContent = results.length ? (settings.dev ? `${took}, model ${r.ms.toFixed(0)} ms, index ${index.ms.toFixed(0)} ms` : '') : 'No good match';
+      answer = { semantic: r.scores, fuzzy, tookMs: performance.now() - typedAt, modelMs: r.ms };
+      rank();
     } catch (e) {
       if (mySeq === seq) statusEl.textContent = `Search failed: ${e instanceof Error ? e.message : e}`;
     }
@@ -177,7 +193,8 @@ async function init(): Promise<() => void> {
     const query = input.value.trim();
     if (!query) {
       results = [];
-      statusEl.textContent = '';
+      answer = null;
+      statusEl.textContent = index && !index.ready ? 'Indexing…' : '';
       return render();
     }
     // Highlights of the previous answer stay in place until the model answers.
@@ -188,16 +205,18 @@ async function init(): Promise<() => void> {
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
     chunks = buildChunks(blocks, settings.minS, settings.maxS);
-    // Results point into the old chunks.
+    // Results and scores point into the old chunks.
     results = [];
+    answer = null;
     render(false);
     ensureIndex().catch((e) => { statusEl.textContent = `Indexing failed: ${e.message}`; });
   }
 
   function syncUi(): void {
-    devEl.hidden = !settings.dev;
+    panelEl.hidden = !settings.panel;
+    settingsButton.setAttribute('aria-expanded', String(settings.panel));
     sliders.forEach((s) => {
-      const key = s.name as 'threshold' | 'minS' | 'maxS' | 'weight';
+      const key = s.name as SliderKey;
       s.value = String(settings[key]);
       s.nextElementSibling!.textContent = String(settings[key]);
     });
@@ -205,6 +224,7 @@ async function init(): Promise<() => void> {
 
   function open(): void {
     host.style.display = 'block';
+    $('model').textContent = MODEL.id;
     syncUi();
     reindex();
     input.focus();
@@ -225,18 +245,32 @@ async function init(): Promise<() => void> {
     e.stopPropagation(); // keep page shortcuts from firing while typing
     if (e.key === 'Enter') { e.preventDefault(); step(e.shiftKey ? -1 : 1); }
     else if (e.key === 'Escape') { e.preventDefault(); close(); }
-    else if (e.altKey && e.code === 'KeyD') { e.preventDefault(); settings.dev = !settings.dev; save(); syncUi(); renderList(); }
   });
   $('next').onclick = () => step(1);
   $('prev').onclick = () => step(-1);
   $('close').onclick = close;
+  settingsButton.onclick = () => {
+    settings.panel = !settings.panel;
+    save();
+    syncUi();
+    renderPanel();
+    input.focus();
+  };
+  $('reset').onclick = () => {
+    Object.assign(settings, DEFAULTS, { panel: settings.panel });
+    save();
+    syncUi();
+    reindex();
+    search();
+  };
   sliders.forEach((s) => s.addEventListener('input', () => {
-    const key = s.name as 'threshold' | 'minS' | 'maxS' | 'weight';
+    const key = s.name as SliderKey;
     settings[key] = Number(s.value);
     if (settings.minS > settings.maxS) settings[key === 'minS' ? 'maxS' : 'minS'] = settings[key];
     save();
     syncUi();
-    if (key === 'minS' || key === 'maxS') reindex();
+    if (key === 'threshold' || key === 'weight') return answer ? rank() : search();
+    reindex();
     search();
   }));
 

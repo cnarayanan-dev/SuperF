@@ -21,7 +21,7 @@ The model is fetched once at build time and bundled. The extension itself never 
 - Type a query. Passages are ranked by meaning, mixed with the fuzzy word score, so typos still match.
 - For exact matching use the browser's own Cmd+F.
 - Enter and Shift+Enter move between results, best first. Esc closes.
-- Alt+D inside the overlay toggles the dev panel: threshold, weight and sentence sliders, plus raw scores per result.
+- The Settings button opens the settings panel: threshold, weight and sentence sliders, raw scores per result, chunk count and timings. Reset restores the defaults.
 
 ## Test
 

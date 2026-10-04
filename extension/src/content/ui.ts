@@ -14,13 +14,21 @@ export const OVERLAY_HTML = `
     <button id="next" title="Next (Enter)">&#8595;</button>
     <button id="close" title="Close (Esc)">&#10005;</button>
   </div>
-  <div class="row"><span id="status"></span></div>
-  <div id="dev" hidden>
+  <div class="row">
+    <button id="settings" title="Settings" aria-expanded="false">Settings</button>
+    <span id="status"></span>
+  </div>
+  <div id="panel" hidden>
     <label>Score threshold <input type="range" name="threshold" min="0" max="1" step="0.01"><output></output></label>
     <label>Semantic weight <input type="range" name="weight" min="0" max="1" step="0.05"><output></output></label>
     <label>Min sentences <input type="range" name="minS" min="1" max="5" step="1"><output></output></label>
     <label>Max sentences <input type="range" name="maxS" min="1" max="5" step="1"><output></output></label>
+    <div id="stats"></div>
     <ol id="list"></ol>
+    <div class="row">
+      <span id="model"></span>
+      <button id="reset" title="Restore the defaults">Reset</button>
+    </div>
   </div>
 </div>
 `;
@@ -45,10 +53,14 @@ button {
   border: 1px solid transparent; border-radius: 6px; padding: 3px 7px;
 }
 button:hover { background: rgba(128, 128, 128, .18); }
-.row:has(#status:empty) { display: none; }
+#settings { border-color: #d0d7de; padding: 2px 10px; }
+#settings[aria-expanded=true] { background: #0969da; border-color: #0969da; color: #fff; }
+#reset { border-color: #d0d7de; }
 #status { flex: 1; text-align: right; color: #656d76; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#dev { margin-top: 8px; padding-top: 8px; border-top: 1px solid #d0d7de; }
-#dev[hidden] { display: none; }
+#panel { margin-top: 8px; padding-top: 8px; border-top: 1px solid #d0d7de; }
+#panel[hidden] { display: none; }
+#stats { margin-top: 8px; color: #656d76; font-size: 12px; white-space: pre-line; }
+#model { flex: 1; color: #656d76; font-size: 12px; }
 label { display: grid; grid-template-columns: 120px 1fr 36px; align-items: center; gap: 6px; }
 output { text-align: right; font-variant-numeric: tabular-nums; }
 #list { margin: 8px 0 0; padding: 0; list-style: none; max-height: 240px; overflow: auto; }
@@ -57,7 +69,7 @@ output { text-align: right; font-variant-numeric: tabular-nums; }
 #list b { display: block; font-weight: 600; color: #656d76; }
 @media (prefers-color-scheme: dark) {
   .box { color: #e6edf3; background: #22272e; border-color: #444c56; }
-  #q, #dev { border-color: #444c56; }
-  #count, #status, #list b { color: #9198a1; }
+  #q, #panel, #settings:not([aria-expanded=true]), #reset { border-color: #444c56; }
+  #count, #status, #stats, #model, #list b { color: #9198a1; }
 }
 `;

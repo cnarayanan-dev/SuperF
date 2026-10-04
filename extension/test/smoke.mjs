@@ -32,6 +32,9 @@ const toggle = () => sw.evaluate(async () => { const [tab] = await chrome.tabs.q
 const input = page.locator('#semantic-find-host #q');
 const count = page.locator('#semantic-find-host #count');
 const status = page.locator('#semantic-find-host #status');
+const panel = page.locator('#semantic-find-host #panel');
+const settingsButton = page.locator('#semantic-find-host #settings');
+const items = page.locator('#semantic-find-host #list li');
 const currentText = () => page.evaluate(() => [...CSS.highlights.get('sf-current') ?? []].map((r) => r.toString()).join(' | '));
 const check = async (label, query, expected) => {
   await input.fill(query);
@@ -52,7 +55,8 @@ try {
   await input.waitFor();
   assert.equal(await page.locator('#semantic-find-host [data-mode]').count(), 0, 'no mode switch');
   assert.equal(await page.locator('#semantic-find-host button', { hasText: /^(Word|Semantic)$/ }).count(), 0, 'no mode buttons');
-  assert.equal('mode' in (await sw.evaluate(() => chrome.storage.local.get('settings'))).settings, false, 'stored mode is gone');
+  const storedKeys = Object.keys((await sw.evaluate(() => chrome.storage.local.get('settings'))).settings);
+  assert.ok(!storedKeys.includes('mode') && !storedKeys.includes('dev'), 'stored mode and dev are gone');
 
   // First search on the page: nothing is highlighted while the page is being indexed.
   await input.fill('rollback');
@@ -68,10 +72,64 @@ try {
   assert.equal(await status.textContent(), 'No good match');
   await check('inline', 'relay login to', /relay login to/);
 
-  await input.press('Alt+KeyD'); // dev panel shows timings and raw scores
+  // The Settings button toggles the settings panel. Alt+D does nothing.
+  assert.equal(await panel.isVisible(), false, 'panel starts closed');
+  await input.press('Alt+KeyD');
+  assert.equal(await panel.isVisible(), false, 'Alt+D does nothing');
+  await settingsButton.click();
+  assert.ok(await panel.isVisible(), 'Settings opens the panel');
+  await settingsButton.click();
+  assert.equal(await panel.isVisible(), false, 'Settings closes the panel');
+  await settingsButton.click();
+
   await check('synonym', 'undo a release', /rollback/);
-  assert.ok(await page.locator('#semantic-find-host #dev').isVisible(), 'dev panel opens');
-  assert.match(await page.locator('#semantic-find-host #list li').first().textContent(), /cos .* fuzzy .* hybrid /);
+  assert.match(await items.first().textContent(), /semantic 0\.\d\d · fuzzy [01]\.\d\d · blended [01]\.\d\d/);
+  const stats = await panel.locator('#stats').textContent();
+  assert.match(stats, /\d+ chunks, indexed in \d+ ms \((webgpu|wasm) fp16\)/);
+  assert.match(stats, /Result in \d+ ms, model \d+ ms/);
+  assert.equal(await panel.locator('#model').textContent(), 'Xenova/all-MiniLM-L6-v2');
+
+  // Clicking a result in the list selects it.
+  await items.nth(1).click();
+  assert.match(await count.textContent(), /^2\//);
+  assert.doesNotMatch(await currentText(), /rollback to restore/);
+
+  // Threshold and weight re-rank at once, without a model call.
+  const slide = (name, value) => shadowEval((root, [name, value]) => {
+    const el = root.querySelector(`input[name=${name}]`);
+    el.value = value;
+    el.dispatchEvent(new Event('input'));
+    el.dispatchEvent(new Event('change'));
+    return {
+      shown: el.nextElementSibling.textContent,
+      count: root.getElementById('count').textContent,
+      status: root.getElementById('status').textContent,
+      top: root.querySelector('#list li')?.textContent ?? '',
+    };
+  }, [name, value]);
+  assert.deepEqual(await slide('threshold', '1'), { shown: '1', count: '', status: 'No good match', top: '' });
+  assert.equal((await slide('threshold', '0')).count, '1/10');
+  assert.match((await slide('weight', '0')).top, /blended 1\.00/, 'weight 0 ranks by fuzzy score');
+  assert.equal((await slide('weight', '0.25')).shown, '0.25');
+
+  // Settings and the open panel survive closing the overlay and a page reload.
+  await slide('threshold', '0.5');
+  await input.press('Escape');
+  await page.reload();
+  await toggle();
+  await input.waitFor();
+  assert.ok(await panel.isVisible(), 'panel is still open');
+  assert.equal(await panel.locator('input[name=threshold]').inputValue(), '0.5');
+  assert.equal(await panel.locator('input[name=weight]').inputValue(), '0.25');
+
+  // Reset restores the defaults and keeps the panel open.
+  await panel.locator('#reset').click();
+  assert.equal(await panel.locator('input[name=threshold]').inputValue(), '0.35');
+  assert.equal(await panel.locator('input[name=weight]').inputValue(), '0.7');
+  assert.ok(await panel.isVisible());
+  const afterReset = (await sw.evaluate(() => chrome.storage.local.get('settings'))).settings;
+  assert.deepEqual([afterReset.threshold, afterReset.weight, afterReset.panel], [0.35, 0.7, true]);
+
   await check('paraphrase', 'how to delete my account', /close your account/);
   await check('paraphrase', 'why did my build get killed', /ran out of memory/);
   await check('paraphrase', 'where do I put my API keys safely', /environment variables/);
