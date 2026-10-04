@@ -182,3 +182,17 @@ SuperF/              # repo root
 - Prefer small, testable modules. The search logic in `extension/src/search/` must run in both the extension and the benchmark harness.
 - Every new ranking change gets re-run through the benchmark before merging.
 - Keep explanations brief. Avoid em dashes and semicolons in docs.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues on `cnarayanan-dev/SuperF`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
