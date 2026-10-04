@@ -1,39 +1,36 @@
-// Chunking. Pure functions on sentence spans, shared by the extension and the benchmark.
+// Chunking: groups the sentences of a page into chunks. Pure functions on plain spans,
+// shared by the extension and the benchmark.
 import type { Span } from './sentences.ts';
 
-// One sentence of a chunk. The offsets point into the text of its paragraph.
-export interface SentenceSpan { para: number; start: number; end: number }
+// One sentence of a chunk, with offsets in the text of its paragraph.
+export interface SentenceSpan { paragraph: number; start: number; end: number }
 
-// Overlap is always smaller than chunk length.
-export function clampOverlap(chunkLength: number, overlap: number): number {
-  return Math.max(0, Math.min(overlap, chunkLength - 1));
+// Overlap is always smaller than the chunk length.
+export function clampOverlap(length: number, overlap: number): number {
+  return Math.max(0, Math.min(overlap, length - 1));
 }
 
-// paragraphs[p] holds the sentence spans of paragraph p. Chunks advance by chunk length minus
-// overlap. The last chunk of a sequence may be shorter. With cross off, each paragraph is its own
-// sequence, so a chunk never leaves its paragraph. With cross on, all sentences of the page form
-// one sequence and a chunk can cover several paragraphs.
-export function chunkSentences(paragraphs: Span[][], chunkLength: number, overlap: number, cross = false): SentenceSpan[][] {
-  const step = chunkLength - clampOverlap(chunkLength, overlap);
-  const spans = paragraphs.map((sentences, para) => sentences.map(([start, end]): SentenceSpan => ({ para, start, end })));
-  const out: SentenceSpan[][] = [];
-  for (const seq of cross ? [spans.flat()] : spans) {
-    for (let i = 0; i < seq.length; i += step) {
-      out.push(seq.slice(i, i + chunkLength));
-      // This chunk reached the end. A further one would only repeat its sentences.
-      if (i + chunkLength >= seq.length) break;
+// paragraphs[i] holds the sentence spans of paragraph i. Chunks advance by length minus overlap.
+// The last chunk of a sequence may be shorter. With cross off, each paragraph is its own sequence,
+// so a chunk never leaves its paragraph. With cross on, all sentences of the page form one
+// sequence and a chunk can cover several paragraphs.
+export function chunkSentences(paragraphs: Span[][], length: number, overlap: number, cross = false): SentenceSpan[][] {
+  length = Math.max(1, Math.floor(length));
+  const step = length - clampOverlap(length, Math.floor(overlap));
+  const spans = paragraphs.map((sentences, paragraph) => sentences.map(([start, end]): SentenceSpan => ({ paragraph, start, end })));
+  const chunks: SentenceSpan[][] = [];
+  for (const sequence of cross ? [spans.flat()] : spans) {
+    for (let i = 0; i < sequence.length; i += step) {
+      chunks.push(sequence.slice(i, i + length));
+      // A further chunk would only repeat sentences of this one.
+      if (i + length >= sequence.length) break;
     }
   }
-  return out;
-}
-
-// The text given to the model: the sentences joined with a space.
-export function chunkText(paragraphTexts: string[], sentences: SentenceSpan[]): string {
-  return sentences.map((s) => paragraphTexts[s.para].slice(s.start, s.end)).join(' ');
+  return chunks;
 }
 
 // The run of `length` consecutive sentences with the highest summed score, as [start, end).
-// The first such run wins a tie.
+// The first such run wins a tie. This picks the highlight inside a chunk that is longer than it.
 export function bestWindow(scores: number[], length: number): [start: number, end: number] {
   if (length >= scores.length) return [0, scores.length];
   let best = 0, bestSum = -Infinity;
@@ -45,13 +42,13 @@ export function bestWindow(scores: number[], length: number): [start: number, en
   return [best, best + length];
 }
 
-// One range per paragraph the sentences touch, for highlighting.
-export function toRanges(sentences: SentenceSpan[]): SentenceSpan[] {
-  const out: SentenceSpan[] = [];
-  for (const s of sentences) {
-    const prev = out[out.length - 1];
-    if (prev?.para === s.para) prev.end = s.end;
-    else out.push({ ...s });
+// One range per paragraph the sentences touch, for highlighting a chunk or a part of it.
+export function chunkRanges(chunk: SentenceSpan[]): [paragraph: number, start: number, end: number][] {
+  const out: [number, number, number][] = [];
+  for (const s of chunk) {
+    const last = out.at(-1);
+    if (last?.[0] === s.paragraph) last[2] = s.end;
+    else out.push([s.paragraph, s.start, s.end]);
   }
   return out;
 }

@@ -18,7 +18,7 @@ Success means:
 - **Score threshold.** Only show semantic results with cosine similarity of at least 0.35 (default for MiniLM, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the threshold is set per model in `extension/src/model.ts` and the benchmark reports a calibrated value for each. The first plan was 0.6, but that hid 21 of 25 correct MiniLM answers on the model-pick test set. Passages with a strong fuzzy score (0.8 or more, `STRONG_FUZZY` in `extension/src/search/rank.ts`) are shown even below the threshold. That covers literal matches and typo queries like "bandwitdh", which `Word` mode used to serve.
 - **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
 - **Highlight size.** Highlight length is its own setting (1 to 3 sentences, default 2), separate from chunk length. A chunk no longer than the highlight length is highlighted whole, with no extra model call. A longer chunk is first highlighted whole. A second model call then scores the sentences of the shown results against the query, and the highlight becomes the run of consecutive sentences with the highest summed semantic score. Sentence vectors are kept with the index. Picking is semantic, not fuzzy. Measured on WebGPU (M-series, 8,800 word page, 10 results, chunk length 4 and 6): the second call takes 22 to 97 ms the first time a chunk is shown and about 0 ms afterwards. Results land 167 to 215 ms after the last keystroke. The narrowed highlight lands 203 to 291 ms after it on the first query that shows a chunk, and 171 to 194 ms on later ones. So the first narrowing can miss the 250 ms budget by up to about 40 ms, while the results themselves stay inside it. At the default settings (chunk length 2, highlight length 2) there is no second call.
-- **Settings panel.** A Settings button in the overlay opens a panel with sliders for chunk length (1 to 6 sentences), overlap (0 to 2, always less than chunk length), highlight length, score threshold and semantic weight, and a checkbox "Chunks may cross paragraphs" (off by default). Chunk length, overlap and the checkbox index the page again when the control is released. Highlight length only redoes the highlights. It lists the results with semantic, fuzzy and blended score, and shows the chunk count, indexing time and device, keystroke to result time, model time and model name. Threshold and weight re-rank without a model call. Reset restores the defaults. Settings and the open state of the panel are stored locally.
+- **Settings panel.** A Settings button in the overlay opens the settings panel inside the overlay. It has sliders for the score threshold, the semantic weight, the chunk length (1 to 6 sentences, default 2) and the overlap (0 to 2 sentences, default 0, always smaller than the chunk length), a checkbox "Chunks may cross paragraphs" (off by default) and the highlight length (1 to 3 sentences, default 2), plus a Reset button. Chunk length, overlap and the checkbox re-index the page when the control is released. Highlight length only redoes the highlights. It lists the results with semantic, fuzzy and blended score, and shows the chunk count, indexing time, device, keystroke to result time, model time and model name. Threshold and weight re-rank the last answer without a model call. Settings and the open state of the panel are stored locally and shared by all tabs. This is for testing and building intuition. There is no hidden dev panel and no Alt+D shortcut any more.
 - **Index per configuration.** An index is identified by the tab, the chunk length, the overlap, the crossing flag and a signature of the page text. Up to 4 indexes are kept per tab and the least recently used is dropped. The page decides which ones are kept and tells the offscreen document to forget the others. Going back to a configuration that was already tried on the page embeds nothing, and the panel marks the index as "reused". Closing the tab or loading a new page in it drops all its indexes.
 - **Shortcut**: Cmd+Shift+K for v1 (Ctrl+Shift+K on Windows and Linux). Cmd+Shift+F and Cmd+Shift+J were tried first but are blocked in Chrome, so they were dropped.
 - **Model for v1**: `Xenova/all-MiniLM-L6-v2`.
@@ -29,7 +29,7 @@ Success means:
 ## How it works (short version)
 
 1. **Extract**: the content script walks the page DOM and collects visible text.
-2. **Chunk**: each paragraph is split into sentences, and the sentences are grouped into chunks. Chunk length (default 2 sentences) and overlap (default 0) are settings. Chunks advance by chunk length minus overlap, and the last chunk of a paragraph may be shorter. By default a chunk never leaves its paragraph. With "Chunks may cross paragraphs" on, all sentences of the page form one sequence, and a result is highlighted with one range per paragraph it touches. Each chunk remembers its sentences and where they sit in the DOM. The chunking function is `extension/src/search/chunks.ts`.
+2. **Chunk**: the text of each paragraph is split into sentences, and the sentences are grouped into chunks. A chunk has `chunk length` sentences (default 2) and the next chunk starts `chunk length` minus `overlap` sentences later (default overlap 0). By default a chunk never leaves its paragraph, and the last chunk of a paragraph may be shorter. With "Chunks may cross paragraphs" on, all sentences of the page form one sequence, and a result is highlighted with one range per paragraph it touches. A chunk is a list of sentence spans, each tied to its paragraph, so it can be turned back into a highlight. The chunking is one pure function in `extension/src/search/chunks.ts`.
 3. **Embed**: a small transformer model turns each chunk into a vector (e.g. 384 numbers). Texts with similar meaning get vectors that point in similar directions.
 4. **Query**: the user's query is embedded the same way.
 5. **Rank**: cosine similarity between the query vector and every chunk vector. Highest scores win.
@@ -107,12 +107,12 @@ Use it:
 - Open any normal web page and press Cmd+Shift+K, or click the extension icon in the toolbar. It does not run on `chrome://` pages, the Chrome Web Store or the PDF viewer.
 - Type a query. Semantic search runs as you type. The status line shows "Indexing…" or "Searching…" until the result is there.
 - Enter and Shift+Enter move between results. Esc closes.
-- The Settings button in the overlay opens the settings panel with sliders, raw scores and timings.
+- The Settings button opens the settings panel with sliders, raw scores per result and timings. Reset restores the defaults.
 - If the shortcut does nothing, check `chrome://extensions/shortcuts`. Another extension may hold the same keys. Chrome only applies a changed default shortcut on a fresh install, so after changing it in the manifest either set it there by hand or remove the extension and load it again.
 
 After a code change, run `npm run build` again, click the reload icon on the extension card in `chrome://extensions`, and reload the page.
 
-Tests: `npm run typecheck`, `npm test` (Node unit tests for chunking and the index cache) and `npm run smoke` (run `npx playwright install chromium` once before the smoke test).
+Tests: `npm run typecheck`, `npm test` (Node unit tests for chunking, highlight picking and the index cache) and `npm run smoke` (run `npm run build` and once `npx playwright install chromium` before the smoke test).
 
 ## Proposed repo structure
 
@@ -172,9 +172,8 @@ SuperF/              # repo root
 
 ## Open questions
 
-- Chunk size and overlap: both can now be tried in the settings panel on a real page. Which values become the default is open until the benchmark can measure them (Task 4).
+- Chunk size and overlap: chunk length and overlap can now be tried on a real page in the settings panel. Which values become the default is still open. It needs a benchmark with answers labelled as text spans (Task 4), because the model-pick benchmark works on pre-cut chunks. Overlap multiplies the number of chunks, so it also costs indexing time.
 - How to weight fuzzy vs semantic scores (fixed, or by query length)
-- What happens to an in-flight semantic query when the user keeps typing (cancel or drop stale results)?
 - Handling dynamic pages (infinite scroll, SPAs): re-index on DOM changes?
 
 ## Working conventions for Claude Code
@@ -183,3 +182,17 @@ SuperF/              # repo root
 - Prefer small, testable modules. The search logic in `extension/src/search/` must run in both the extension and the benchmark harness.
 - Every new ranking change gets re-run through the benchmark before merging.
 - Keep explanations brief. Avoid em dashes and semicolons in docs.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues on `cnarayanan-dev/SuperF`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.

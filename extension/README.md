@@ -21,7 +21,7 @@ The model is fetched once at build time and bundled. The extension itself never 
 - Type a query. Passages are ranked by meaning, mixed with the fuzzy word score, so typos still match.
 - For exact matching use the browser's own Cmd+F.
 - Enter and Shift+Enter move between results, best first. Esc closes.
-- The Settings button opens the settings panel: chunk length, overlap, highlight length, threshold and weight sliders, a checkbox that lets chunks cross paragraphs, raw scores per result, timings and a Reset button.
+- The Settings button opens the settings panel: threshold, weight, chunk length, overlap and highlight length sliders, a checkbox that lets chunks cross paragraphs, raw scores per result, chunk count and timings. Reset restores the defaults.
 
 ## Test
 
@@ -29,13 +29,13 @@ The model is fetched once at build time and bundled. The extension itself never 
 npx playwright install chromium   # once
 npm run build && npm run smoke    # add -- --headed to watch
 npm run typecheck
-npm test                          # unit tests for chunking and the index cache
+npm test                          # Node unit tests for chunking, highlight picking and the index cache
 ```
 
 ## Layout
 
-- `src/search/`: fuzzy scoring, cosine ranking, hybrid merge, sentence splitting. Pure functions, also used by `bench/`.
-- `src/content/`: DOM extraction, chunking, highlighting, overlay.
+- `src/search/`: fuzzy scoring, cosine ranking, hybrid merge, sentence splitting, chunking. Pure functions, also used by `bench/`.
+- `src/content/`: DOM extraction, highlighting, overlay and settings panel.
 - `src/offscreen/`: loads the model once and keeps chunk vectors per tab.
 - `src/background/`: shortcut handling and message relay.
 - `src/model.ts`: model id, weight precision and default score threshold.

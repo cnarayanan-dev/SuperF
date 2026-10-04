@@ -1,6 +1,6 @@
 // Content script: overlay UI, search orchestration and highlighting.
 import { fuzzyMatch, tokenize } from '../search/fuzzy.ts';
-import { bestWindow, clampOverlap, toRanges, type SentenceSpan } from '../search/chunks.ts';
+import { bestWindow, chunkRanges, clampOverlap } from '../search/chunks.ts';
 import { lruGet, lruSet, MAX_INDEXES, textSignature } from '../search/lru.ts';
 import { hybridScores, isShown } from '../search/rank.ts';
 import { INDEX_NOT_FOUND, type ErrorResponse, type IndexResponse, type QueryResponse, type Request, type SentencesResponse } from '../messages.ts';
@@ -8,23 +8,29 @@ import { MODEL } from '../model.ts';
 import { buildChunks, extractBlocks, toRange, type Block, type Chunk } from './dom.ts';
 import { OVERLAY_CSS, OVERLAY_HTML, PAGE_CSS } from './ui.ts';
 
-interface Settings { threshold: number; weight: number; chunkLen: number; overlap: number; cross: boolean; hlLen: number; panel: boolean }
-type SliderKey = 'threshold' | 'weight' | 'chunkLen' | 'overlap' | 'hlLen';
-// These change the chunks, so the page is indexed again when the slider is released.
-const CHUNK_KEYS: SliderKey[] = ['chunkLen', 'overlap'];
+interface Settings {
+  threshold: number;
+  weight: number;
+  chunkLength: number;
+  overlap: number;
+  cross: boolean; // chunks may cross paragraph borders
+  highlightLength: number;
+  panel: boolean;
+}
+type SliderKey = 'threshold' | 'weight' | 'chunkLength' | 'overlap' | 'highlightLength';
+// The index of one chunk configuration on one page text, held as vectors in the offscreen document.
+interface Index { id: string; key: string; done: Promise<void>; ms: number; device: string; ready: boolean; reused: boolean }
 // The scores of one answered query on the index in use.
 interface Answer {
   query: string;
   semantic: number[];
   fuzzy: number[];
-  modelMs: number;
   tookMs: number; // keystroke to result
+  modelMs: number;
   sentences: Map<number, number[]>; // semantic score per sentence, for chunks longer than the highlight
   asked: Set<number>; // chunks whose sentence scores are requested or in
   highlight: { modelMs: number; tookMs: number } | 'pending' | null; // the second model call, if one was needed
 }
-// The index of one configuration on one page text, held as vectors in the offscreen document.
-interface Index { id: string; key: string; done: Promise<void>; ms: number; device: string; ready: boolean; reused: boolean }
 interface Result {
   chunk: number;
   fuzzy: number;
@@ -32,18 +38,29 @@ interface Result {
   hybrid: number;
 }
 
-const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, chunkLen: 2, overlap: 0, cross: false, hlLen: 2, panel: false };
+const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, chunkLength: 2, overlap: 0, cross: false, highlightLength: 2, panel: false };
 const DEBOUNCE_MS = 150;
 const BATCH = 32;
 const MAX_RESULTS = 10;
 
-// Stored keys from earlier builds (like "mode" and "dev") are ignored, missing ones fall back to the defaults.
-function loadSettings(stored: Record<string, unknown> = {}): Settings {
-  const out: Record<string, unknown> = { ...DEFAULTS };
-  for (const k in out) if (typeof stored[k] === typeof out[k]) out[k] = stored[k];
-  const settings = out as unknown as Settings;
-  settings.overlap = clampOverlap(settings.chunkLen, settings.overlap);
-  return settings;
+// Stored keys from earlier builds (like "mode", "dev" or "minS") are ignored, missing ones fall back to the defaults.
+// Values outside the range of their slider are pulled back into it.
+function loadSettings(stored: Record<string, unknown> | null | undefined): Settings {
+  const pick = <K extends keyof Settings>(k: K): Settings[K] => {
+    const v = stored?.[k];
+    return typeof v === typeof DEFAULTS[k] && !Number.isNaN(v) ? (v as Settings[K]) : DEFAULTS[k];
+  };
+  const within = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
+  const chunkLength = within(Math.round(pick('chunkLength')), 1, 6);
+  return {
+    threshold: within(pick('threshold'), 0, 1),
+    weight: within(pick('weight'), 0, 1),
+    chunkLength,
+    overlap: clampOverlap(chunkLength, within(Math.round(pick('overlap')), 0, 2)),
+    cross: pick('cross'),
+    highlightLength: within(Math.round(pick('highlightLength')), 1, 3),
+    panel: pick('panel'),
+  };
 }
 
 declare global { interface Window { __semanticFind?: boolean } }
@@ -75,10 +92,10 @@ async function init(): Promise<() => void> {
 
   const $ = <T extends HTMLElement>(id: string) => shadow.getElementById(id) as T;
   const input = $<HTMLInputElement>('q');
-  const countEl = $('count'), statusEl = $('status'), panelEl = $('panel'), listEl = $('list'), settingsBtn = $('settings');
+  const countEl = $('count'), statusEl = $('status'), panelEl = $('panel'), listEl = $('list');
+  const settingsButton = $('settings'), statsEl = $('stats');
   const sliders = [...shadow.querySelectorAll<HTMLInputElement>('input[type=range]')];
   const crossEl = $<HTMLInputElement>('cross');
-  $('st-model').textContent = MODEL.id;
 
   // ---------- state ----------
   let blocks: Block[] = [];
@@ -87,13 +104,14 @@ async function init(): Promise<() => void> {
   let current = 0;
   let seq = 0; // bumped on every new search, stale async answers are dropped
   let timer = 0;
+  let pending = false; // a search is waiting for the debounce or the model
+  let chunked = ''; // chunk length, overlap and crossing the chunks were built with
+  let indexKey = ''; // identifies the chunks: what they were built with, plus a signature of the page text
   let typedAt = 0;
-  let busy = false; // a search is waiting for the debounce or the model
-  let indexKey = ''; // identifies the chunks: what was used to build them, plus the page text
   let index: Index | null = null; // the one in use
-  const indexes = new Map<string, Index>(); // by configuration and page text, least recently used first
-  // Scores of the last answered query, kept so the threshold and weight sliders re-rank without a model call.
-  let last: Answer | null = null;
+  const indexes = new Map<string, Index>(); // by index key, least recently used first
+  // The last model answer. Threshold and weight changes re-rank it without a model call.
+  let answer: Answer | null = null;
 
   const send = <T>(req: Request) =>
     chrome.runtime.sendMessage({ ...req, target: 'bg' }) as Promise<T | ErrorResponse>;
@@ -108,11 +126,11 @@ async function init(): Promise<() => void> {
 
   // The part of a result that is marked, as one range per paragraph it touches. A chunk longer than the
   // highlight length is marked whole until its sentence scores are in, then the best run of sentences is.
-  function highlightOf(r: Result): SentenceSpan[] {
-    const { sentences } = chunks[r.chunk];
-    const scores = last?.sentences.get(r.chunk);
-    if (sentences.length <= settings.hlLen || !scores) return toRanges(sentences);
-    return toRanges(sentences.slice(...bestWindow(scores, settings.hlLen)));
+  function highlightOf(r: Result): [block: number, start: number, end: number][] {
+    const { spans } = chunks[r.chunk];
+    const scores = answer?.sentences.get(r.chunk);
+    if (spans.length <= settings.highlightLength || !scores) return chunkRanges(spans);
+    return chunkRanges(spans.slice(...bestWindow(scores, settings.highlightLength)));
   }
 
   function render(scroll = true): void {
@@ -120,7 +138,7 @@ async function init(): Promise<() => void> {
     countEl.textContent = results.length ? `${current + 1}/${results.length}` : '';
     const all: Range[] = [];
     results.forEach((r, i) => {
-      const ranges = highlightOf(r).map((s) => toRange(blocks[s.para], s.start, s.end));
+      const ranges = highlightOf(r).map(([b, s, e]) => toRange(blocks[b], s, e));
       if (i !== current) return void all.push(...ranges);
       const cur = new Highlight(...ranges);
       cur.priority = 1;
@@ -131,22 +149,26 @@ async function init(): Promise<() => void> {
     renderPanel();
   }
 
-  // ---------- settings panel ----------
+  // How the highlights of the shown results were picked, as a line for the settings panel.
+  function highlightStat(): string {
+    if (!results.length) return '';
+    const picked = answer?.highlight;
+    const long = results.some((r) => chunks[r.chunk].spans.length > settings.highlightLength);
+    if (!long) return '\nHighlight: whole chunk, no model call';
+    if (picked === 'pending') return '\nHighlight: by sentence…';
+    if (!picked) return '\nHighlight: whole chunk';
+    const after = picked.tookMs ? `, ${picked.tookMs.toFixed(0)} ms after keystroke` : '';
+    return `\nHighlight: by sentence, model ${picked.modelMs.toFixed(0)} ms${after}`;
+  }
+
+  // The result list and the numbers in the settings panel. Costs nothing while the panel is closed.
   function renderPanel(): void {
-    const ms = (n: number) => `${n.toFixed(0)} ms`;
-    $('st-chunks').textContent = String(chunks.length);
-    $('st-index').textContent = index?.ready ? `${ms(index.ms)} (${index.device})${index.reused ? ', reused' : ''}` : '…';
-    $('st-latency').textContent = last ? ms(last.tookMs) : '–';
-    $('st-model-ms').textContent = last ? ms(last.modelMs) : '–';
-    const hl = last?.highlight;
-    const long = results.some((r) => chunks[r.chunk].sentences.length > settings.hlLen);
-    $('st-highlight').textContent = !results.length ? '–'
-      : !long ? 'whole chunk, no model call'
-      : hl === 'pending' ? 'by sentence…'
-      : hl ? `by sentence, model ${ms(hl.modelMs)}` + (hl.tookMs ? `, ${ms(hl.tookMs)} after keystroke` : '')
-      : 'whole chunk';
-    listEl.replaceChildren();
     if (!settings.panel) return;
+    const ms = (n: number) => `${n.toFixed(0)} ms`;
+    const indexed = index?.ready ? `, indexed in ${ms(index.ms)} (${index.device})${index.reused ? ', reused' : ''}` : '';
+    const timing = answer ? `\nResult in ${ms(answer.tookMs)}, model ${ms(answer.modelMs)}` : '';
+    statsEl.textContent = `${chunks.length} chunks${indexed}${timing}${highlightStat()}`;
+    listEl.replaceChildren();
     results.forEach((r, i) => {
       const li = document.createElement('li');
       if (i === current) li.className = 'current';
@@ -200,52 +222,53 @@ async function init(): Promise<() => void> {
       mine.ms = performance.now() - t0;
       mine.ready = true;
       if (index !== mine) return;
-      if (!input.value.trim()) statusEl.textContent = `Indexed ${texts.length} chunks in ${mine.ms.toFixed(0)} ms (${mine.device})`;
+      if (!input.value.trim()) statusEl.textContent = '';
       renderPanel();
     })();
     mine.done.catch(() => { forget(); if (index === mine) index = null; });
     return mine.done;
   }
 
-  // Turns the scores of the last answered query into results. No model call.
+  // Turns the last model answer into results with the current threshold and weight.
   function rank(): void {
-    if (!last) return;
-    const { semantic, fuzzy } = last;
+    if (!answer) return;
+    pending = false;
+    const { semantic, fuzzy } = answer;
     const hybrid = hybridScores(semantic, fuzzy, settings.weight);
     results = chunks
-      .map((c, i): Result => ({ chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
+      .map((_, i): Result => ({ chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
       .filter((x) => isShown(x.semantic, x.fuzzy, settings.threshold))
       .sort((x, y) => y.hybrid - x.hybrid)
       .slice(0, MAX_RESULTS);
     current = 0;
-    statusEl.textContent = results.length ? '' : 'No good match';
     render();
+    statusEl.textContent = results.length ? '' : 'No good match';
   }
 
   // Second model call: scores the sentences of the shown results that are longer than the highlight
   // length. The offscreen document keeps the sentence vectors, so a later query only needs scoring.
   async function pickHighlights(fromKeystroke = false): Promise<void> {
-    const answer = last;
-    if (!answer || !index) return;
-    const need = results.map((r) => r.chunk).filter((c) => chunks[c].sentences.length > settings.hlLen && !answer.asked.has(c));
+    const mine = answer;
+    if (!mine || !index) return;
+    const need = results.map((r) => r.chunk).filter((c) => chunks[c].spans.length > settings.highlightLength && !mine.asked.has(c));
     if (!need.length) return;
-    need.forEach((c) => answer.asked.add(c));
+    need.forEach((c) => mine.asked.add(c));
     const mySeq = seq;
-    const before = answer.highlight;
-    answer.highlight = 'pending';
+    const before = mine.highlight;
+    mine.highlight = 'pending';
     renderPanel();
-    const texts = (c: number) => chunks[c].sentences.map((s) => blocks[s.para].text.slice(s.start, s.end));
-    const r = await send<SentencesResponse>({ type: 'sentences', indexId: index.id, query: answer.query, chunks: need.map((chunk) => ({ chunk, texts: texts(chunk) })) })
+    const texts = (c: number) => chunks[c].spans.map((s) => blocks[s.paragraph].text.slice(s.start, s.end));
+    const r = await send<SentencesResponse>({ type: 'sentences', indexId: index.id, query: mine.query, chunks: need.map((chunk) => ({ chunk, texts: texts(chunk) })) })
       .catch((e): ErrorResponse => ({ error: String(e) }));
-    if (mySeq !== seq || last !== answer || 'error' in r) {
+    if (mySeq !== seq || answer !== mine || 'error' in r) {
       // The user kept typing, the page was indexed again, or the call failed. The whole chunk stays highlighted.
-      need.forEach((c) => answer.asked.delete(c));
-      answer.highlight = before === 'pending' ? null : before;
-      if (last === answer) renderPanel();
+      need.forEach((c) => mine.asked.delete(c));
+      mine.highlight = before === 'pending' ? null : before;
+      if (answer === mine) renderPanel();
       return;
     }
-    need.forEach((chunk, i) => answer.sentences.set(chunk, r.scores[i]));
-    answer.highlight = { modelMs: r.ms, tookMs: fromKeystroke ? performance.now() - typedAt : 0 };
+    need.forEach((chunk, i) => mine.sentences.set(chunk, r.scores[i]));
+    mine.highlight = { modelMs: r.ms, tookMs: fromKeystroke ? performance.now() - typedAt : 0 };
     render();
   }
 
@@ -269,13 +292,12 @@ async function init(): Promise<() => void> {
       const qt = tokenize(query).map((t) => t.t);
       const caches = qt.map(() => new Map<string, number>());
       const fuzzy = chunks.map((c) => fuzzyMatch(qt, c.tokens, caches).score);
-      busy = false;
-      last = { query, semantic: r.scores, fuzzy, modelMs: r.ms, tookMs: performance.now() - typedAt, sentences: new Map(), asked: new Set(), highlight: null };
+      answer = { query, semantic: r.scores, fuzzy, tookMs: performance.now() - typedAt, modelMs: r.ms, sentences: new Map(), asked: new Set(), highlight: null };
       rank();
       void pickHighlights(true);
     } catch (e) {
       if (mySeq !== seq) return;
-      busy = false;
+      pending = false;
       statusEl.textContent = `Search failed: ${e instanceof Error ? e.message : e}`;
     }
   }
@@ -286,11 +308,11 @@ async function init(): Promise<() => void> {
     clearTimeout(timer);
     typedAt = performance.now();
     const query = input.value.trim();
-    busy = !!query;
+    pending = !!query;
     if (!query) {
       results = [];
-      last = null;
-      statusEl.textContent = '';
+      answer = null;
+      statusEl.textContent = index && !index.ready ? 'Indexing…' : '';
       return render();
     }
     // Highlights of the previous answer stay in place until the model answers.
@@ -298,34 +320,39 @@ async function init(): Promise<() => void> {
     timer = window.setTimeout(() => void semanticSearch(query, mySeq), DEBOUNCE_MS);
   }
 
+  const chunkConfig = () => `${settings.chunkLength}:${settings.overlap}:${settings.cross}`;
+
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
-    const { chunkLen, overlap, cross } = settings;
-    chunks = buildChunks(blocks, chunkLen, overlap, cross);
+    chunks = buildChunks(blocks, settings.chunkLength, settings.overlap, settings.cross);
+    chunked = chunkConfig();
     // Everything that changes the chunks is part of the key. Highlight and ranking settings are not.
     // It is fixed here with the chunks, as a slider can move on before the page is indexed again.
-    indexKey = `${chunkLen}:${overlap}:${cross}|${textSignature(blocks.map((b) => b.text))}`;
+    indexKey = `${chunked}|${textSignature(blocks.map((b) => b.text))}`;
     // Results and scores point into the old chunks.
     results = [];
-    last = null;
+    answer = null;
     render(false);
     ensureIndex().catch((e) => { statusEl.textContent = `Indexing failed: ${e.message}`; });
   }
 
   function syncUi(): void {
     panelEl.hidden = !settings.panel;
-    settingsBtn.setAttribute('aria-expanded', String(settings.panel));
+    settingsButton.setAttribute('aria-expanded', String(settings.panel));
     crossEl.checked = settings.cross;
     sliders.forEach((s) => {
       const key = s.name as SliderKey;
       s.value = String(settings[key]);
       s.nextElementSibling!.textContent = String(settings[key]);
     });
-    renderPanel();
   }
 
-  function open(): void {
+  async function open(): Promise<void> {
     host.style.display = 'block';
+    $('model').textContent = MODEL.id;
+    // Another tab may have changed the settings since this page loaded them.
+    Object.assign(settings, loadSettings((await chrome.storage.local.get('settings')).settings));
+    if (host.style.display === 'none') return; // closed again in the meantime
     syncUi();
     reindex();
     input.focus();
@@ -350,7 +377,13 @@ async function init(): Promise<() => void> {
   $('next').onclick = () => step(1);
   $('prev').onclick = () => step(-1);
   $('close').onclick = close;
-  settingsBtn.onclick = () => { settings.panel = !settings.panel; save(); syncUi(); };
+  settingsButton.onclick = () => {
+    settings.panel = !settings.panel;
+    save();
+    syncUi();
+    renderPanel();
+    input.focus();
+  };
   $('reset').onclick = () => {
     Object.assign(settings, DEFAULTS, { panel: settings.panel });
     save();
@@ -358,26 +391,35 @@ async function init(): Promise<() => void> {
     reindex();
     search();
   };
-  crossEl.addEventListener('change', () => { settings.cross = crossEl.checked; save(); reindex(); search(); });
+  crossEl.addEventListener('change', () => {
+    settings.cross = crossEl.checked;
+    save();
+    reindex();
+    search();
+  });
   sliders.forEach((s) => {
     const key = s.name as SliderKey;
+    const rechunks = key === 'chunkLength' || key === 'overlap';
     s.addEventListener('input', () => {
       settings[key] = Number(s.value);
-      settings.overlap = clampOverlap(settings.chunkLen, settings.overlap);
+      settings.overlap = clampOverlap(settings.chunkLength, settings.overlap);
       save();
       syncUi();
-      if (CHUNK_KEYS.includes(key)) return;
+      if (rechunks) return; // chunk settings wait for the release of the slider
       // Highlight length keeps the results and only redoes the highlights.
-      if (key === 'hlLen') { render(); void pickHighlights(); }
-      else if (!busy) rank(); // a pending search picks the new value up when it lands
+      if (key === 'highlightLength') { render(); return void pickHighlights(); }
+      // Threshold and weight re-rank at once, without a model call.
+      // While a search is pending, its answer is ranked with the new values anyway.
+      if (!pending) return answer ? rank() : search();
     });
-    // Fires when the slider is released, so dragging across values indexes once.
     s.addEventListener('change', () => {
-      if (CHUNK_KEYS.includes(key)) { reindex(); search(); }
-      // Sweeping threshold or weight makes no model call. Results that came in are narrowed on release.
-      else if (!busy) void pickHighlights();
+      // Results that came in while sweeping threshold or weight are narrowed on release.
+      if (!rechunks) return void (pending || pickHighlights());
+      if (chunkConfig() === chunked) return; // clamped back to what is already indexed
+      reindex();
+      search();
     });
   });
 
-  return () => (host.style.display === 'none' ? open() : close());
+  return () => (host.style.display === 'none' ? void open() : close());
 }

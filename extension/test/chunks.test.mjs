@@ -1,75 +1,81 @@
-// Unit tests for the chunking function. Run with "npm test".
+// Unit tests for chunking. Run with "npm test" (Node built-in test runner).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bestWindow, chunkSentences, chunkText, clampOverlap, toRanges } from '../src/search/chunks.ts';
-import { splitSentences } from '../src/search/sentences.ts';
+import { bestWindow, chunkRanges, chunkSentences, clampOverlap } from '../src/search/chunks.ts';
 
-// Paragraphs are written one letter per sentence: 'A B C' is the text "A. B. C." with three sentences.
-const page = (...paragraphs) => {
-  const names = paragraphs.map((p) => p.split(' ').filter(Boolean));
-  return {
-    texts: names.map((p) => p.map((w) => `${w}.`).join(' ')),
-    sentences: names.map((p) => p.map((_, i) => [i * 3, i * 3 + 2])),
-  };
-};
-// Chunks as readable strings, with " | " where a chunk moves on to the next paragraph.
-const chunked = (paragraphs, ...config) => {
-  const { texts, sentences } = page(...paragraphs);
-  return chunkSentences(sentences, ...config).map((c) => toRanges(c).map((r) => texts[r.para].slice(r.start, r.end)).join(' | '));
-};
+// A paragraph of n sentences, each 10 characters long.
+const paragraph = (n) => Array.from({ length: n }, (_, i) => [i * 10, i * 10 + 9]);
+// Chunks as sentence numbers per chunk, like "0,1 2,3", with the paragraph in front when asked.
+const shape = (chunks) => chunks.map((c) => c.map((s) => s.start / 10).join(',')).join(' ');
 
 test('chunk length without overlap', () => {
-  assert.deepEqual(chunked(['A B C D'], 2, 0), ['A. B.', 'C. D.']);
-  assert.deepEqual(chunked(['A B C'], 1, 0), ['A.', 'B.', 'C.']);
+  assert.equal(shape(chunkSentences([paragraph(6)], 2, 0)), '0,1 2,3 4,5');
+  assert.equal(shape(chunkSentences([paragraph(6)], 3, 0)), '0,1,2 3,4,5');
+  assert.equal(shape(chunkSentences([paragraph(3)], 1, 0)), '0 1 2');
 });
 
 test('chunks advance by chunk length minus overlap', () => {
-  assert.deepEqual(chunked(['A B C D E'], 3, 1), ['A. B. C.', 'C. D. E.']);
-  assert.deepEqual(chunked(['A B C D E F G'], 3, 2), ['A. B. C.', 'B. C. D.', 'C. D. E.', 'D. E. F.', 'E. F. G.']);
+  assert.equal(shape(chunkSentences([paragraph(5)], 3, 1)), '0,1,2 2,3,4');
+  assert.equal(shape(chunkSentences([paragraph(4)], 2, 1)), '0,1 1,2 2,3');
 });
 
-test('the last chunk may be shorter than chunk length', () => {
-  assert.deepEqual(chunked(['A B C D E'], 2, 0), ['A. B.', 'C. D.', 'E.']);
-  assert.deepEqual(chunked(['A B C D E F'], 4, 1), ['A. B. C. D.', 'D. E. F.']);
+test('the last chunk may be shorter than the chunk length', () => {
+  assert.equal(shape(chunkSentences([paragraph(5)], 2, 0)), '0,1 2,3 4');
+  assert.equal(shape(chunkSentences([paragraph(6)], 3, 1)), '0,1,2 2,3,4 4,5');
 });
 
-test('no trailing chunk that only repeats sentences of the chunk before it', () => {
-  assert.deepEqual(chunked(['A B C D'], 2, 1), ['A. B.', 'B. C.', 'C. D.']);
-  assert.deepEqual(chunked(['A B C D'], 3, 2), ['A. B. C.', 'B. C. D.']);
+test('no trailing chunk that only repeats earlier sentences', () => {
+  // Without the rule, 4 sentences with length 3 and overlap 2 would end with "2,3" and "3".
+  assert.equal(shape(chunkSentences([paragraph(4)], 3, 2)), '0,1,2 1,2,3');
+  assert.equal(shape(chunkSentences([paragraph(3)], 3, 1)), '0,1,2');
 });
 
-test('a paragraph shorter than chunk length is one chunk', () => {
-  assert.deepEqual(chunked(['A B', 'C'], 4, 2), ['A. B.', 'C.']);
+test('a paragraph shorter than the chunk length is one chunk', () => {
+  assert.equal(shape(chunkSentences([paragraph(2)], 4, 0)), '0,1');
+  assert.equal(shape(chunkSentences([paragraph(1)], 6, 2)), '0');
+  assert.deepEqual(chunkSentences([[]], 2, 0), []);
 });
 
 test('a chunk never leaves its paragraph', () => {
-  assert.deepEqual(chunked(['A B C', 'D E'], 2, 0), ['A. B.', 'C.', 'D. E.']);
-  assert.deepEqual(chunked(['A', '', 'B'], 2, 0), ['A.', 'B.']);
+  const chunks = chunkSentences([paragraph(3), paragraph(1), paragraph(2)], 2, 0);
+  assert.equal(shape(chunks), '0,1 2 0 0,1');
+  assert.deepEqual(chunks.map((c) => c[0].paragraph), [0, 0, 1, 2]);
+  assert.ok(chunks.every((c) => c.every((s) => s.paragraph === c[0].paragraph)));
 });
 
+test('overlap is clamped below the chunk length', () => {
+  assert.equal(clampOverlap(1, 2), 0);
+  assert.equal(clampOverlap(2, 2), 1);
+  assert.equal(clampOverlap(3, 2), 2);
+  assert.equal(clampOverlap(4, -1), 0);
+  assert.equal(shape(chunkSentences([paragraph(3)], 1, 2)), '0 1 2');
+  assert.equal(shape(chunkSentences([paragraph(4)], 2, 2)), '0,1 1,2 2,3');
+  // A chunk length below 1 must not loop forever.
+  assert.equal(shape(chunkSentences([paragraph(2)], 0, 0)), '0 1');
+});
+
+test('a chunk is drawn as one range per paragraph', () => {
+  const [chunk] = chunkSentences([paragraph(3)], 3, 0);
+  assert.deepEqual(chunkRanges(chunk), [[0, 0, 29]]);
+  const crossing = [{ paragraph: 0, start: 20, end: 29 }, { paragraph: 1, start: 0, end: 9 }, { paragraph: 1, start: 10, end: 19 }];
+  assert.deepEqual(chunkRanges(crossing), [[0, 20, 29], [1, 0, 19]]);
+});
+
+// With crossing on, each sentence is shown as paragraph.sentence, like "0.2,1.0".
+const crossShape = (chunks) => chunks.map((c) => c.map((s) => `${s.paragraph}.${s.start / 10}`).join(',')).join(' ');
+
 test('with crossing on, a chunk can cover several paragraphs', () => {
-  assert.deepEqual(chunked(['A B C', 'D E'], 2, 0, true), ['A. B.', 'C. | D.', 'E.']);
-  assert.deepEqual(chunked(['A', 'B', 'C D'], 4, 0, true), ['A. | B. | C. D.']);
-  assert.deepEqual(chunked(['A B', '', 'C D E'], 3, 1, true), ['A. B. | C.', 'C. D. E.']);
+  assert.equal(crossShape(chunkSentences([paragraph(3), paragraph(2)], 2, 0, true)), '0.0,0.1 0.2,1.0 1.1');
+  assert.equal(crossShape(chunkSentences([paragraph(1), paragraph(1), paragraph(2)], 4, 0, true)), '0.0,1.0,2.0,2.1');
+  assert.equal(crossShape(chunkSentences([paragraph(2), [], paragraph(3)], 3, 1, true)), '0.0,0.1,2.0 2.0,2.1,2.2');
+  const [chunk] = chunkSentences([paragraph(1), paragraph(2)], 3, 0, true);
+  assert.deepEqual(chunkRanges(chunk), [[0, 0, 9], [1, 0, 19]]);
 });
 
 test('crossing is off unless asked for', () => {
-  assert.deepEqual(chunked(['A', 'B', 'C D'], 4, 0), chunked(['A', 'B', 'C D'], 4, 0, false));
-  assert.deepEqual(chunked(['A', 'B', 'C D'], 4, 0, false), ['A.', 'B.', 'C. D.']);
-});
-
-test('overlap is clamped below chunk length', () => {
-  assert.equal(clampOverlap(2, 2), 1);
-  assert.equal(clampOverlap(1, 2), 0);
-  assert.equal(clampOverlap(4, 2), 2);
-  assert.deepEqual(chunked(['A B C'], 2, 5), chunked(['A B C'], 2, 1));
-  assert.deepEqual(chunked(['A B C'], 1, 1), ['A.', 'B.', 'C.']);
-});
-
-test('the chunk text joins the sentences with a space', () => {
-  const texts = ['One.\n\n  Two.   Three.'];
-  const [chunk] = chunkSentences(texts.map(splitSentences), 3, 0);
-  assert.equal(chunkText(texts, chunk), 'One. Two. Three.');
+  const paragraphs = [paragraph(1), paragraph(1), paragraph(2)];
+  assert.deepEqual(chunkSentences(paragraphs, 4, 0), chunkSentences(paragraphs, 4, 0, false));
+  assert.equal(crossShape(chunkSentences(paragraphs, 4, 0, false)), '0.0 1.0 2.0,2.1');
 });
 
 test('the highlight is the run of sentences with the highest summed score', () => {

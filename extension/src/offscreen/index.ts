@@ -66,10 +66,10 @@ async function handle(msg: Envelope): Promise<unknown> {
     return { ok: true };
   }
   if (msg.type === 'index') {
-    let indexes = tabs.get(tabId);
-    if (!indexes) tabs.set(tabId, (indexes = new Map()));
-    let entry = lruGet(indexes, msg.indexId);
-    if (!entry) lruSet(indexes, msg.indexId, (entry = { vecs: [], sentences: new Map() }), MAX_INDEXES);
+    const indexes = tabs.get(tabId) ?? new Map<string, Index>();
+    tabs.set(tabId, indexes);
+    const entry = lruGet(indexes, msg.indexId) ?? { vecs: [], sentences: new Map() };
+    lruSet(indexes, msg.indexId, entry, MAX_INDEXES);
     const { vecs } = entry;
     (await embed(msg.texts)).forEach((v, i) => { vecs[msg.ids[i]] = v; });
     return { ok: true, ms: performance.now() - t0, device: `${device} ${MODEL.dtype}` };
@@ -88,7 +88,10 @@ async function handle(msg: Envelope): Promise<unknown> {
   const vecs: Float32Array[] = [];
   for (let i = 0; i < texts.length; i += BATCH) vecs.push(...(await embed(texts.slice(i, i + BATCH))));
   let at = 0;
-  for (const c of missing) sentences.set(c.chunk, vecs.slice(at, (at += c.texts.length)));
+  for (const c of missing) {
+    sentences.set(c.chunk, vecs.slice(at, at + c.texts.length));
+    at += c.texts.length;
+  }
   const q = entry.query?.text === msg.query ? entry.query.vec : (await embed([MODEL.queryPrefix + msg.query]))[0];
   return { scores: msg.chunks.map((c) => sentences.get(c.chunk)!.map((v) => score(q, v))), ms: performance.now() - t0 };
 }

@@ -30,7 +30,7 @@ export function lruSet<K, V>(map: Map<K, V>, key: K, value: V, max: number): V[]
 export function textSignature(texts: string[]): string {
   let hash = 0x811c9dc5, length = 0;
   for (const text of texts) {
-    for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 0x01000193);
+    for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ (text.codePointAt(i) ?? 0), 0x01000193);
     hash = Math.imul(hash ^ 0xffff, 0x01000193); // paragraph border
     length += text.length;
   }
