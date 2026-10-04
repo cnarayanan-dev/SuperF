@@ -61,8 +61,14 @@ Plus a **no-model baseline** (fuzzy only) to prove the model earns its cost.
 Note: bge works best with its query instruction prefix. MiniLM and gte need none. Check each model card. The q8 sizes are for comparison only. The extension ships fp16 weights, which are about twice as large.
 
 ### 4. Test cases and automated benchmark
-- Collect 15 to 20 saved English HTML pages: docs, news, Wikipedia, long-form articles.
-- Page size scenarios for speed tests: about 1,000, 5,000, 10,000 and 20,000 words.
+- **Done: test pages.** 27 saved English HTML pages live in `bench/pages/`: Wikipedia, news, university sites (UZH, ETH), docs, government and long-form. See `bench/pages/README.md`.
+  - `sources.json` is the page list. `node fetch.mjs` downloads the pages and writes `pages.json` (word count, size bucket, SHA-256).
+  - 14 openly licensed pages are checked in under `html/`. The 13 copyrighted ones go to a gitignored `local/`, so run `node fetch.mjs` once per machine.
+  - Pages in `local/` are live and can change. The script prints `CHANGED` when a file no longer matches its SHA-256. Check this before trusting labels on those pages.
+  - `fetch.mjs` skips pages that are not English.
+  - Size buckets (rough word count): 15 pages at about 1,000 words, 5 at 5,000, 3 at 10,000 and 4 at 20,000.
+  - `.sonarcloud.properties` excludes the saved pages from SonarCloud. They are fixtures and must stay unmodified.
+- **Next: query sets.** Not started. `bench/cases/` does not exist yet.
 - For each page, write queries with a labelled correct passage, in five categories:
   - `exact`: the literal word
   - `typo`: misspelled ("optmization")
@@ -130,7 +136,7 @@ SuperF/              # repo root
       search/         # fuzzy scoring, cosine ranking, hybrid merge
     models/           # bundled model weights
   bench/
-    pages/            # saved HTML test pages
+    pages/            # saved HTML test pages (html/ checked in, local/ gitignored)
     cases/            # JSON query sets with labelled answers
     runner/           # Playwright harness
     results/
