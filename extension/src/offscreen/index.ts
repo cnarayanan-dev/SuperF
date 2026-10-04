@@ -44,7 +44,13 @@ async function embed(texts: string[]): Promise<Float32Array[]> {
   return texts.map((_, i) => data.slice(i * dims, (i + 1) * dims));
 }
 
-interface Index { vecs: Float32Array[] }
+interface Index {
+  vecs: Float32Array[];
+  // Sentence vectors by chunk, filled when a highlight inside a long chunk is picked.
+  sentences: Map<number, Float32Array[]>;
+  query?: { text: string; vec: Float32Array }; // the last query, so the sentence request does not embed it again
+}
+const BATCH = 32;
 // Per tab, the indexes by id, least recently used first. A tab has one index per configuration it tried.
 const tabs = new Map<number, Map<string, Index>>();
 
@@ -59,16 +65,28 @@ async function handle(msg: Envelope): Promise<unknown> {
     let indexes = tabs.get(tabId);
     if (!indexes) tabs.set(tabId, (indexes = new Map()));
     let entry = lruGet(indexes, msg.indexId);
-    if (!entry) lruSet(indexes, msg.indexId, (entry = { vecs: [] }), MAX_INDEXES);
+    if (!entry) lruSet(indexes, msg.indexId, (entry = { vecs: [], sentences: new Map() }), MAX_INDEXES);
     const { vecs } = entry;
     (await embed(msg.texts)).forEach((v, i) => { vecs[msg.ids[i]] = v; });
     return { ok: true, ms: performance.now() - t0, device: `${device} ${MODEL.dtype}` };
   }
   const entry = lruGet(tabs.get(tabId) ?? new Map<string, Index>(), msg.indexId);
   if (!entry) return { error: INDEX_NOT_FOUND };
-  const [q] = await embed([MODEL.queryPrefix + msg.query]);
-  const scores = entry.vecs.map((v) => Math.round(dot(q, v) * 1e4) / 1e4);
-  return { scores, ms: performance.now() - t0 };
+  const score = (q: Float32Array, v: Float32Array) => Math.round(dot(q, v) * 1e4) / 1e4;
+  if (msg.type === 'query') {
+    const [q] = await embed([MODEL.queryPrefix + msg.query]);
+    entry.query = { text: msg.query, vec: q };
+    return { scores: entry.vecs.map((v) => score(q, v)), ms: performance.now() - t0 };
+  }
+  const { sentences } = entry;
+  const missing = msg.chunks.filter((c) => !sentences.has(c.chunk));
+  const texts = missing.flatMap((c) => c.texts);
+  const vecs: Float32Array[] = [];
+  for (let i = 0; i < texts.length; i += BATCH) vecs.push(...(await embed(texts.slice(i, i + BATCH))));
+  let at = 0;
+  for (const c of missing) sentences.set(c.chunk, vecs.slice(at, (at += c.texts.length)));
+  const q = entry.query?.text === msg.query ? entry.query.vec : (await embed([MODEL.queryPrefix + msg.query]))[0];
+  return { scores: msg.chunks.map((c) => sentences.get(c.chunk)!.map((v) => score(q, v))), ms: performance.now() - t0 };
 }
 
 // One inference at a time. The ONNX session does not run concurrent calls.

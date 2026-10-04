@@ -33,9 +33,15 @@ const input = page.locator('#semantic-find-host #q');
 const count = page.locator('#semantic-find-host #count');
 const status = page.locator('#semantic-find-host #status');
 const currentText = () => page.evaluate(() => [...CSS.highlights.get('sf-current') ?? []].map((r) => r.toString()).join(' | '));
+// The answer is in, and so is the second model call that picks the highlight inside a long chunk.
+const answered = () => page.waitForFunction(() => {
+  const root = document.querySelector('#semantic-find-host').shadowRoot;
+  return !/Searching|Indexing/.test(root.getElementById('status').textContent) && !root.getElementById('st-highlight').textContent.endsWith('…');
+});
+const sentenceCount = (text) => (text.match(/[.!?](?=\s|$)/g) ?? []).length;
 const check = async (label, query, expected) => {
   await input.fill(query);
-  await page.waitForFunction(() => !/Searching|Indexing/.test(document.querySelector('#semantic-find-host').shadowRoot.getElementById('status').textContent));
+  await answered();
   const got = await currentText();
   console.log(`${label.padEnd(10)} "${query}" -> ${await count.textContent() || '0'}  ${JSON.stringify(got.slice(0, 80))}  [${await status.textContent()}]`);
   if (expected === null) assert.equal(got, '', `${label}: expected no result`);
@@ -170,6 +176,49 @@ try {
   await page.evaluate(() => document.getElementById('added').remove());
   await toggle();
   assert.match(await indexStat(), /reused/, 'the earlier page text still has its index');
+  await check('exact', 'rollback', /rollback/i);
+
+  // Highlight length is separate from chunk length. A chunk no longer than the highlight is marked whole.
+  assert.equal(await valueOf('hlLen'), '2');
+  await check('whole', 'how do I get HTTPS for my domain', /certificate is issued automatically/);
+  assert.equal(await ui('#st-highlight').textContent(), 'whole chunk, no model call');
+  await setChunkLen(1);
+  await check('whole', 'rollback', /rollback/i);
+  assert.equal(await ui('#st-highlight').textContent(), 'whole chunk, no model call');
+
+  // Inside a longer chunk a second model call picks the sentences that answer the query.
+  await setChunkLen(4);
+  await check('pick 2', 'how do I get HTTPS for my domain', /certificate is issued automatically/);
+  assert.ok(sentenceCount(await currentText()) <= 2, 'at most 2 sentences are highlighted');
+  assert.match(await ui('#st-highlight').textContent(), /^by sentence, model \d+ ms, \d+ ms after keystroke$/);
+  console.log(`highlight ${await ui('#st-highlight').textContent()} (first query, sentences are embedded)`);
+  await check('pick 2', 'where is the TLS cert coming from', /certificate is issued automatically/);
+  console.log(`highlight ${await ui('#st-highlight').textContent()} (later query, sentence vectors are kept)`);
+
+  // Changing the highlight length keeps the index and the result order, and only redoes the highlights.
+  const listTexts = () => ui('#list li').allTextContents();
+  const [indexBefore, orderBefore] = [await ui('#st-index').textContent(), await listTexts()];
+  await slider('hlLen').fill('1');
+  await answered();
+  assert.equal(sentenceCount(await currentText()), 1);
+  assert.match(await currentText(), /certificate is issued automatically/);
+  await slider('hlLen').fill('3');
+  await answered();
+  assert.equal(sentenceCount(await currentText()), 3);
+  assert.deepEqual([await ui('#st-index').textContent(), await listTexts()], [indexBefore, orderBefore]);
+  await slider('hlLen').fill('2');
+
+  // A late answer to the second call of an older query is dropped.
+  await input.fill('how do I get HTTPS for my domain');
+  await page.waitForTimeout(165); // past the debounce, the model calls are in flight
+  await check('stale 2', 'where are my login tokens kept', /Tokens are stored/);
+  assert.ok(sentenceCount(await currentText()) <= 2);
+  await page.waitForTimeout(400);
+  assert.match(await currentText(), /Tokens are stored/, 'a late highlight for the older query is dropped');
+
+  await slider('hlLen').fill('3');
+  await ui('#reset').click();
+  assert.equal(await valueOf('hlLen'), '2', 'Reset restores highlight length 2');
   await check('exact', 'rollback', /rollback/i);
 
   // Only a few indexes are kept per tab. The least recently used one is dropped.

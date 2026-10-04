@@ -21,7 +21,7 @@ The model is fetched once at build time and bundled. The extension itself never 
 - Type a query. Passages are ranked by meaning, mixed with the fuzzy word score, so typos still match.
 - For exact matching use the browser's own Cmd+F.
 - Enter and Shift+Enter move between results, best first. Esc closes.
-- The Settings button opens the settings panel: chunk length, overlap, threshold and weight sliders, raw scores per result, timings and a Reset button.
+- The Settings button opens the settings panel: chunk length, overlap, highlight length, threshold and weight sliders, raw scores per result, timings and a Reset button.
 
 ## Test
 

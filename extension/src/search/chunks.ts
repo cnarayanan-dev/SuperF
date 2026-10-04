@@ -30,6 +30,19 @@ export function chunkText(paragraphTexts: string[], sentences: SentenceSpan[]): 
   return sentences.map((s) => paragraphTexts[s.para].slice(s.start, s.end)).join(' ');
 }
 
+// The run of `length` consecutive sentences with the highest summed score, as [start, end).
+// The first such run wins a tie.
+export function bestWindow(scores: number[], length: number): [start: number, end: number] {
+  if (length >= scores.length) return [0, scores.length];
+  let best = 0, bestSum = -Infinity;
+  for (let i = 0; i + length <= scores.length; i++) {
+    let sum = 0;
+    for (let k = i; k < i + length; k++) sum += scores[k];
+    if (sum > bestSum) { bestSum = sum; best = i; }
+  }
+  return [best, best + length];
+}
+
 // One range per paragraph the sentences touch, for highlighting.
 export function toRanges(sentences: SentenceSpan[]): SentenceSpan[] {
   const out: SentenceSpan[] = [];

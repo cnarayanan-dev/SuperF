@@ -17,6 +17,7 @@ export const OVERLAY_HTML = `
   </div>
   <div class="row"><span id="status"></span></div>
   <div id="panel" hidden>
+    <label>Highlight length <input type="range" name="hlLen" min="1" max="3" step="1"><output></output></label>
     <label>Score threshold <input type="range" name="threshold" min="0" max="1" step="0.01"><output></output></label>
     <label>Semantic weight <input type="range" name="weight" min="0" max="1" step="0.05"><output></output></label>
     <label>Chunk length <input type="range" name="chunkLen" min="1" max="6" step="1"><output></output></label>
@@ -26,6 +27,7 @@ export const OVERLAY_HTML = `
       <dt>Indexing</dt><dd id="st-index"></dd>
       <dt>Keystroke to result</dt><dd id="st-latency"></dd>
       <dt>Model time</dt><dd id="st-model-ms"></dd>
+      <dt>Highlight</dt><dd id="st-highlight"></dd>
       <dt>Model</dt><dd id="st-model"></dd>
     </dl>
     <button id="reset">Reset</button>
