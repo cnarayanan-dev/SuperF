@@ -13,11 +13,17 @@ export function lruGet<K, V>(map: Map<K, V>, key: K): V | undefined {
   return value;
 }
 
-// Writes a key as the most recently used and drops the least recently used beyond max.
-export function lruSet<K, V>(map: Map<K, V>, key: K, value: V, max: number): void {
+// Writes a key as the most recently used. Returns the values dropped as least recently used beyond max.
+export function lruSet<K, V>(map: Map<K, V>, key: K, value: V, max: number): V[] {
   map.delete(key);
   map.set(key, value);
-  while (map.size > max) map.delete(map.keys().next().value as K);
+  const dropped: V[] = [];
+  while (map.size > max) {
+    const oldest = map.keys().next().value as K;
+    dropped.push(map.get(oldest) as V);
+    map.delete(oldest);
+  }
+  return dropped;
 }
 
 // Signature of the page text (FNV-1a hash plus length). A change to any paragraph changes it.

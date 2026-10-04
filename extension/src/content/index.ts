@@ -20,6 +20,7 @@ interface Answer {
   modelMs: number;
   tookMs: number; // keystroke to result
   sentences: Map<number, number[]>; // semantic score per sentence, for chunks longer than the highlight
+  asked: Set<number>; // chunks whose sentence scores are requested or in
   highlight: { modelMs: number; tookMs: number } | 'pending' | null; // the second model call, if one was needed
 }
 // The index of one configuration on one page text, held as vectors in the offscreen document.
@@ -88,7 +89,7 @@ async function init(): Promise<() => void> {
   let timer = 0;
   let typedAt = 0;
   let busy = false; // a search is waiting for the debounce or the model
-  let pageSig = '';
+  let indexKey = ''; // identifies the chunks: what was used to build them, plus the page text
   let index: Index | null = null; // the one in use
   const indexes = new Map<string, Index>(); // by configuration and page text, least recently used first
   // Scores of the last answered query, kept so the threshold and weight sliders re-rank without a model call.
@@ -96,6 +97,8 @@ async function init(): Promise<() => void> {
 
   const send = <T>(req: Request) =>
     chrome.runtime.sendMessage({ ...req, target: 'bg' }) as Promise<T | ErrorResponse>;
+  // Indexes of an earlier page load in this tab cannot be reached any more.
+  void send({ type: 'drop' }).catch(() => {});
 
   // ---------- highlighting ----------
   function clearHighlights(): void {
@@ -164,19 +167,23 @@ async function init(): Promise<() => void> {
 
   // ---------- semantic search ----------
   function ensureIndex(): Promise<void> {
-    // Everything that changes the chunks is part of the key. Highlight and ranking settings are not.
-    const key = `${settings.chunkLen}:${settings.overlap}:${settings.cross}|${pageSig}`;
+    const key = indexKey;
     const known = lruGet(indexes, key);
     if (known) {
       // A configuration that was already tried on this page text comes back without embedding anything.
-      if (known !== index) known.reused = true;
+      if (known !== index) known.reused = known.ready;
       index = known;
       return known.done;
     }
     const mine: Index = { id: crypto.randomUUID(), key, done: Promise.resolve(), ms: 0, device: '', ready: false, reused: false };
     index = mine;
-    lruSet(indexes, key, mine, MAX_INDEXES);
-    const forget = () => { if (indexes.get(key) === mine) indexes.delete(key); };
+    // The offscreen document keeps exactly the indexes this map holds.
+    const forgetOffscreen = (x: Index) => void send({ type: 'forget', indexId: x.id }).catch(() => {});
+    lruSet(indexes, key, mine, MAX_INDEXES).forEach(forgetOffscreen);
+    const forget = () => {
+      if (indexes.get(key) === mine) indexes.delete(key);
+      forgetOffscreen(mine);
+    };
     const texts = chunks.map((c) => c.text);
     // Batches of similar length waste less time on padding.
     const order = texts.map((_, i) => i).sort((a, b) => texts[a].length - texts[b].length);
@@ -201,7 +208,7 @@ async function init(): Promise<() => void> {
   }
 
   // Turns the scores of the last answered query into results. No model call.
-  function rank(fromKeystroke = false): void {
+  function rank(): void {
     if (!last) return;
     const { semantic, fuzzy } = last;
     const hybrid = hybridScores(semantic, fuzzy, settings.weight);
@@ -213,7 +220,6 @@ async function init(): Promise<() => void> {
     current = 0;
     statusEl.textContent = results.length ? '' : 'No good match';
     render();
-    void pickHighlights(fromKeystroke);
   }
 
   // Second model call: scores the sentences of the shown results that are longer than the highlight
@@ -221,19 +227,22 @@ async function init(): Promise<() => void> {
   async function pickHighlights(fromKeystroke = false): Promise<void> {
     const answer = last;
     if (!answer || !index) return;
-    const need = results.map((r) => r.chunk).filter((c) => chunks[c].sentences.length > settings.hlLen && !answer.sentences.has(c));
+    const need = results.map((r) => r.chunk).filter((c) => chunks[c].sentences.length > settings.hlLen && !answer.asked.has(c));
     if (!need.length) return;
+    need.forEach((c) => answer.asked.add(c));
     const mySeq = seq;
+    const before = answer.highlight;
     answer.highlight = 'pending';
     renderPanel();
     const texts = (c: number) => chunks[c].sentences.map((s) => blocks[s.para].text.slice(s.start, s.end));
     const r = await send<SentencesResponse>({ type: 'sentences', indexId: index.id, query: answer.query, chunks: need.map((chunk) => ({ chunk, texts: texts(chunk) })) })
       .catch((e): ErrorResponse => ({ error: String(e) }));
-    if (mySeq !== seq || last !== answer) return; // the user kept typing or the page was indexed again
-    if ('error' in r) {
-      // The whole chunk stays highlighted.
-      answer.highlight = null;
-      return renderPanel();
+    if (mySeq !== seq || last !== answer || 'error' in r) {
+      // The user kept typing, the page was indexed again, or the call failed. The whole chunk stays highlighted.
+      need.forEach((c) => answer.asked.delete(c));
+      answer.highlight = before === 'pending' ? null : before;
+      if (last === answer) renderPanel();
+      return;
     }
     need.forEach((chunk, i) => answer.sentences.set(chunk, r.scores[i]));
     answer.highlight = { modelMs: r.ms, tookMs: fromKeystroke ? performance.now() - typedAt : 0 };
@@ -261,8 +270,9 @@ async function init(): Promise<() => void> {
       const caches = qt.map(() => new Map<string, number>());
       const fuzzy = chunks.map((c) => fuzzyMatch(qt, c.tokens, caches).score);
       busy = false;
-      last = { query, semantic: r.scores, fuzzy, modelMs: r.ms, tookMs: performance.now() - typedAt, sentences: new Map(), highlight: null };
-      rank(true);
+      last = { query, semantic: r.scores, fuzzy, modelMs: r.ms, tookMs: performance.now() - typedAt, sentences: new Map(), asked: new Set(), highlight: null };
+      rank();
+      void pickHighlights(true);
     } catch (e) {
       if (mySeq !== seq) return;
       busy = false;
@@ -290,8 +300,11 @@ async function init(): Promise<() => void> {
 
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
-    pageSig = textSignature(blocks.map((b) => b.text));
-    chunks = buildChunks(blocks, settings.chunkLen, settings.overlap, settings.cross);
+    const { chunkLen, overlap, cross } = settings;
+    chunks = buildChunks(blocks, chunkLen, overlap, cross);
+    // Everything that changes the chunks is part of the key. Highlight and ranking settings are not.
+    // It is fixed here with the chunks, as a slider can move on before the page is indexed again.
+    indexKey = `${chunkLen}:${overlap}:${cross}|${textSignature(blocks.map((b) => b.text))}`;
     // Results and scores point into the old chunks.
     results = [];
     last = null;
@@ -361,6 +374,8 @@ async function init(): Promise<() => void> {
     // Fires when the slider is released, so dragging across values indexes once.
     s.addEventListener('change', () => {
       if (CHUNK_KEYS.includes(key)) { reindex(); search(); }
+      // Sweeping threshold or weight makes no model call. Results that came in are narrowed on release.
+      else if (!busy) void pickHighlights();
     });
   });
 

@@ -125,6 +125,12 @@ try {
   await toggle();
   assert.ok(await ui('#panel').isVisible(), 'the panel is still open');
   assert.deepEqual([await valueOf('threshold'), await valueOf('weight')], ['0.5', '1']);
+  // They also survive a page load, where they come back from storage.
+  await page.reload();
+  await toggle();
+  await input.waitFor();
+  assert.ok(await ui('#panel').isVisible(), 'the panel is open after a reload');
+  assert.deepEqual([await valueOf('threshold'), await valueOf('weight')], ['0.5', '1']);
   await ui('#reset').click();
   assert.deepEqual([await valueOf('threshold'), await valueOf('weight')], ['0.35', '0.7']);
   assert.deepEqual([(await stored()).threshold, (await stored()).weight], [0.35, 0.7]);
@@ -208,9 +214,25 @@ try {
   assert.deepEqual([await ui('#st-index').textContent(), await listTexts()], [indexBefore, orderBefore]);
   await slider('hlLen').fill('2');
 
-  // A late answer to the second call of an older query is dropped.
+  // A late answer to the second call of an older query is dropped. The next query is typed at the
+  // moment the second call starts, and 100 ms later its answer has not narrowed the old highlight.
+  const typedDuringSecondCall = shadowEval((root, next) => new Promise((resolve, reject) => {
+    const stat = root.getElementById('st-highlight');
+    const seen = new MutationObserver(() => {
+      if (!stat.textContent.endsWith('…')) return;
+      seen.disconnect();
+      const el = root.getElementById('q');
+      el.value = next;
+      el.dispatchEvent(new Event('input'));
+      setTimeout(() => resolve([...CSS.highlights.get('sf-current') ?? []].join(' ')), 100);
+    });
+    seen.observe(stat, { childList: true, characterData: true, subtree: true });
+    setTimeout(() => reject(new Error('the second model call never started')), 10000);
+  }), 'where are my login tokens kept');
   await input.fill('how do I get HTTPS for my domain');
-  await page.waitForTimeout(165); // past the debounce, the model calls are in flight
+  const oldHighlight = await typedDuringSecondCall;
+  assert.match(oldHighlight, /certificate is issued automatically/);
+  assert.ok(sentenceCount(oldHighlight) > 2, 'the older query keeps its whole chunk highlighted');
   await check('stale 2', 'where are my login tokens kept', /Tokens are stored/);
   assert.ok(sentenceCount(await currentText()) <= 2);
   await page.waitForTimeout(400);
@@ -248,7 +270,7 @@ try {
   // Highlight picking by sentence works inside a chunk that covers several paragraphs.
   await slider('hlLen').fill('2');
   await check('pick x', 'rollback', /rollback/i);
-  assert.ok(sentenceCount((await currentText()).replaceAll(' | ', ' ')) <= 2);
+  assert.equal(await currentText(), 'If a release breaks production, run relay rollback to restore the previous version. Rollbacks complete within seconds.', 'the two sentences on rollback are picked out of a chunk that covers two paragraphs');
   assert.match(await ui('#st-highlight').textContent(), /^by sentence/);
 
   // Off and on again: both indexes are still there.

@@ -5,7 +5,9 @@ import { lruGet, lruSet, textSignature } from '../src/search/lru.ts';
 
 test('the least recently used key is dropped beyond the cap', () => {
   const map = new Map();
-  for (const k of ['a', 'b', 'c']) lruSet(map, k, k.toUpperCase(), 2);
+  assert.deepEqual(lruSet(map, 'a', 'A', 2), []);
+  assert.deepEqual(lruSet(map, 'b', 'B', 2), []);
+  assert.deepEqual(lruSet(map, 'c', 'C', 2), ['A'], 'the dropped value is returned');
   assert.deepEqual([...map.keys()], ['b', 'c']);
 });
 

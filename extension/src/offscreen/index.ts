@@ -61,6 +61,10 @@ async function handle(msg: Envelope): Promise<unknown> {
     tabs.delete(tabId);
     return { ok: true };
   }
+  if (msg.type === 'forget') {
+    tabs.get(tabId)?.delete(msg.indexId);
+    return { ok: true };
+  }
   if (msg.type === 'index') {
     let indexes = tabs.get(tabId);
     if (!indexes) tabs.set(tabId, (indexes = new Map()));
