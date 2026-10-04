@@ -44,6 +44,10 @@ const check = async (label, query, expected) => {
 
 const shadowEval = (fn, arg) => page.evaluate(`(${fn})(document.querySelector('#semantic-find-host').shadowRoot, ${JSON.stringify(arg)})`);
 const highlighted = () => page.evaluate(() => [...CSS.highlights.values()].reduce((n, h) => n + h.size, 0));
+const ui = (selector) => page.locator(`#semantic-find-host ${selector}`);
+const slider = (name) => ui(`input[name=${name}]`);
+const valueOf = (name) => ui(`label:has(input[name=${name}]) output`).textContent();
+const stored = async () => (await sw.evaluate(() => chrome.storage.local.get('settings'))).settings;
 
 try {
   // A setting stored by an earlier build, which still had the Word mode.
@@ -52,7 +56,8 @@ try {
   await input.waitFor();
   assert.equal(await page.locator('#semantic-find-host [data-mode]').count(), 0, 'no mode switch');
   assert.equal(await page.locator('#semantic-find-host button', { hasText: /^(Word|Semantic)$/ }).count(), 0, 'no mode buttons');
-  assert.equal('mode' in (await sw.evaluate(() => chrome.storage.local.get('settings'))).settings, false, 'stored mode is gone');
+  assert.equal('mode' in (await stored()), false, 'stored mode is gone');
+  assert.equal('dev' in (await stored()), false, 'stored dev setting is gone');
 
   // First search on the page: nothing is highlighted while the page is being indexed.
   await input.fill('rollback');
@@ -68,10 +73,51 @@ try {
   assert.equal(await status.textContent(), 'No good match');
   await check('inline', 'relay login to', /relay login to/);
 
-  await input.press('Alt+KeyD'); // dev panel shows timings and raw scores
+  // The Settings button opens the settings panel. The old Alt+D shortcut does nothing.
+  assert.ok(await ui('#settings').isVisible(), 'Settings button is visible');
+  await input.press('Alt+KeyD');
+  assert.equal(await ui('#panel').isVisible(), false, 'Alt+D does nothing');
+  await ui('#settings').click();
+  assert.ok(await ui('#panel').isVisible(), 'Settings button opens the panel');
   await check('synonym', 'undo a release', /rollback/);
-  assert.ok(await page.locator('#semantic-find-host #dev').isVisible(), 'dev panel opens');
-  assert.match(await page.locator('#semantic-find-host #list li').first().textContent(), /cos .* fuzzy .* hybrid /);
+  assert.match(await ui('#list li').first().textContent(), /semantic 0\.\d\d · fuzzy 0\.\d\d · blended \d\.\d\d /);
+  assert.match(await ui('#st-chunks').textContent(), /^\d+$/);
+  assert.match(await ui('#st-index').textContent(), /^\d+ ms \((webgpu|wasm) fp16\)/);
+  assert.match(await ui('#st-latency').textContent(), /^\d+ ms$/);
+  assert.match(await ui('#st-model-ms').textContent(), /^\d+ ms$/);
+  assert.equal(await ui('#st-model').textContent(), 'Xenova/all-MiniLM-L6-v2');
+  console.log(`index ${await ui('#st-index').textContent()}, keystroke to result ${await ui('#st-latency').textContent()}, model ${await ui('#st-model-ms').textContent()}`);
+
+  // A click in the result list selects and scrolls to that result.
+  await ui('#list li').nth(1).click();
+  assert.match(await count.textContent(), /^2\//);
+  assert.doesNotMatch(await currentText(), /rollback to restore/);
+
+  // Score threshold and semantic weight re-rank at once, so the new result is there without waiting for the model.
+  const moveSlider = (name, value) => shadowEval((root, [name, value]) => {
+    const el = root.querySelector(`input[name=${name}]`);
+    el.value = value;
+    el.dispatchEvent(new Event('input'));
+    return { count: root.getElementById('count').textContent, status: root.getElementById('status').textContent, second: root.querySelectorAll('#list li')[1]?.textContent ?? '' };
+  }, [name, value]);
+  const strict = await moveSlider('threshold', '1');
+  assert.deepEqual([strict.count, strict.status], ['', 'No good match'], 'threshold 1 hides every result at once');
+  assert.equal(await valueOf('threshold'), '1');
+  const loose = await moveSlider('threshold', '0.35');
+  assert.match(loose.count, /^1\//);
+  const blended = await moveSlider('weight', '1');
+  assert.notEqual(blended.second, loose.second, 'semantic weight changes the blended score at once');
+
+  // Settings and the open panel survive closing and reopening the overlay. Reset restores the defaults.
+  await moveSlider('threshold', '0.5');
+  await input.press('Escape');
+  await toggle();
+  assert.ok(await ui('#panel').isVisible(), 'the panel is still open');
+  assert.deepEqual([await valueOf('threshold'), await valueOf('weight')], ['0.5', '1']);
+  await ui('#reset').click();
+  assert.deepEqual([await valueOf('threshold'), await valueOf('weight')], ['0.35', '0.7']);
+  assert.deepEqual([(await stored()).threshold, (await stored()).weight], [0.35, 0.7]);
+
   await check('paraphrase', 'how to delete my account', /close your account/);
   await check('paraphrase', 'why did my build get killed', /ran out of memory/);
   await check('paraphrase', 'where do I put my API keys safely', /environment variables/);
