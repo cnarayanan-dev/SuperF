@@ -50,6 +50,8 @@ test('overlap is clamped below the chunk length', () => {
   assert.equal(clampOverlap(4, -1), 0);
   assert.equal(shape(chunkSentences([paragraph(3)], 1, 2)), '0 1 2');
   assert.equal(shape(chunkSentences([paragraph(4)], 2, 2)), '0,1 1,2 2,3');
+  // A chunk length below 1 must not loop forever.
+  assert.equal(shape(chunkSentences([paragraph(2)], 0, 0)), '0 1');
 });
 
 test('a chunk is drawn as one range per paragraph', () => {

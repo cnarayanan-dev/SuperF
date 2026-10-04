@@ -23,10 +23,21 @@ const BATCH = 32;
 const MAX_RESULTS = 10;
 
 // Stored keys from earlier builds (like "mode", "dev" or "minS") are ignored, missing ones fall back to the defaults.
-function loadSettings(stored: Record<string, unknown> = {}): Settings {
-  const out: Record<string, unknown> = { ...DEFAULTS };
-  for (const k in out) if (typeof stored[k] === typeof out[k]) out[k] = stored[k];
-  return out as unknown as Settings;
+// Values outside the range of their slider are pulled back into it.
+function loadSettings(stored: Record<string, unknown> | null | undefined): Settings {
+  const pick = <K extends keyof Settings>(k: K): Settings[K] => {
+    const v = stored?.[k];
+    return typeof v === typeof DEFAULTS[k] && !Number.isNaN(v) ? (v as Settings[K]) : DEFAULTS[k];
+  };
+  const within = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
+  const chunkLength = within(Math.round(pick('chunkLength')), 1, 6);
+  return {
+    threshold: within(pick('threshold'), 0, 1),
+    weight: within(pick('weight'), 0, 1),
+    chunkLength,
+    overlap: clampOverlap(chunkLength, within(Math.round(pick('overlap')), 0, 2)),
+    panel: pick('panel'),
+  };
 }
 
 declare global { interface Window { __semanticFind?: boolean } }
@@ -69,6 +80,8 @@ async function init(): Promise<() => void> {
   let current = 0;
   let seq = 0; // bumped on every new search, stale async answers are dropped
   let timer = 0;
+  let pending = false; // a search is waiting for the debounce or the model
+  let chunked = ''; // chunk length and overlap the chunks were built with
   let typedAt = 0;
   let index: { id: string; sig: string; done: Promise<void>; ms: number; device: string; ready: boolean } | null = null;
   // The last model answer. Threshold and weight changes re-rank it without a model call.
@@ -126,7 +139,7 @@ async function init(): Promise<() => void> {
 
   // ---------- semantic search ----------
   function ensureIndex(): Promise<void> {
-    const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${settings.chunkLength}:${settings.overlap}`;
+    const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${chunked}`;
     if (index?.sig === sig) return index.done;
     const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0, device: '', ready: false };
     index = mine;
@@ -156,6 +169,7 @@ async function init(): Promise<() => void> {
   // Turns the last model answer into results with the current threshold and weight.
   function rank(): void {
     if (!answer) return;
+    pending = false;
     const { semantic, fuzzy } = answer;
     const hybrid = hybridScores(semantic, fuzzy, settings.weight);
     results = chunks
@@ -182,7 +196,9 @@ async function init(): Promise<() => void> {
       answer = { semantic: r.scores, fuzzy, tookMs: performance.now() - typedAt, modelMs: r.ms };
       rank();
     } catch (e) {
-      if (mySeq === seq) statusEl.textContent = `Search failed: ${e instanceof Error ? e.message : e}`;
+      if (mySeq !== seq) return;
+      pending = false;
+      statusEl.textContent = `Search failed: ${e instanceof Error ? e.message : e}`;
     }
   }
 
@@ -192,6 +208,7 @@ async function init(): Promise<() => void> {
     clearTimeout(timer);
     typedAt = performance.now();
     const query = input.value.trim();
+    pending = !!query;
     if (!query) {
       results = [];
       answer = null;
@@ -203,9 +220,12 @@ async function init(): Promise<() => void> {
     timer = window.setTimeout(() => void semanticSearch(query, mySeq), DEBOUNCE_MS);
   }
 
+  const chunkConfig = () => `${settings.chunkLength}:${settings.overlap}`;
+
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
     chunks = buildChunks(blocks, settings.chunkLength, settings.overlap);
+    chunked = chunkConfig();
     // Results and scores point into the old chunks.
     results = [];
     answer = null;
@@ -223,9 +243,12 @@ async function init(): Promise<() => void> {
     });
   }
 
-  function open(): void {
+  async function open(): Promise<void> {
     host.style.display = 'block';
     $('model').textContent = MODEL.id;
+    // Another tab may have changed the settings since this page loaded them.
+    Object.assign(settings, loadSettings((await chrome.storage.local.get('settings')).settings));
+    if (host.style.display === 'none') return; // closed again in the meantime
     syncUi();
     reindex();
     input.focus();
@@ -273,10 +296,15 @@ async function init(): Promise<() => void> {
       save();
       syncUi();
       // Threshold and weight re-rank at once. Chunk settings wait for the release of the slider.
-      if (!rechunks) return answer ? rank() : search();
+      // While a search is pending, its answer is ranked with the new values anyway.
+      if (!rechunks && !pending) return answer ? rank() : search();
     });
-    if (rechunks) s.addEventListener('change', () => { reindex(); search(); });
+    if (rechunks) s.addEventListener('change', () => {
+      if (chunkConfig() === chunked) return; // clamped back to what is already indexed
+      reindex();
+      search();
+    });
   });
 
-  return () => (host.style.display === 'none' ? open() : close());
+  return () => (host.style.display === 'none' ? void open() : close());
 }

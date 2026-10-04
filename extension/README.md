@@ -35,7 +35,7 @@ npm test                          # Node unit tests for chunking
 ## Layout
 
 - `src/search/`: fuzzy scoring, cosine ranking, hybrid merge, sentence splitting, chunking. Pure functions, also used by `bench/`.
-- `src/content/`: DOM extraction, chunking, highlighting, overlay.
+- `src/content/`: DOM extraction, highlighting, overlay and settings panel.
 - `src/offscreen/`: loads the model once and keeps chunk vectors per tab.
 - `src/background/`: shortcut handling and message relay.
 - `src/model.ts`: model id, weight precision and default score threshold.

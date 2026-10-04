@@ -13,7 +13,8 @@ export function clampOverlap(length: number, overlap: number): number {
 // paragraphs[i] holds the sentence spans of paragraph i. Chunks advance by length minus overlap
 // and never leave their paragraph. The last chunk of a paragraph may be shorter.
 export function chunkSentences(paragraphs: Span[][], length: number, overlap: number): SentenceSpan[][] {
-  const step = length - clampOverlap(length, overlap);
+  length = Math.max(1, Math.floor(length));
+  const step = length - clampOverlap(length, Math.floor(overlap));
   const chunks: SentenceSpan[][] = [];
   paragraphs.forEach((sentences, paragraph) => {
     for (let i = 0; i < sentences.length; i += step) {

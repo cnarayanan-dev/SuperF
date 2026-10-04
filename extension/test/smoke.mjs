@@ -50,7 +50,7 @@ const highlighted = () => page.evaluate(() => [...CSS.highlights.values()].reduc
 
 try {
   // A setting stored by an earlier build, which still had the Word mode.
-  await sw.evaluate(() => chrome.storage.local.set({ settings: { mode: 'word', threshold: 0.35, minS: 1, maxS: 2, weight: 0.7, dev: false } }));
+  await sw.evaluate(() => chrome.storage.local.set({ settings: { mode: 'word', threshold: 0.35, minS: 1, maxS: 2, weight: 0.7, dev: true, chunkLength: 0, overlap: 5 } }));
   await toggle();
   await input.waitFor();
   assert.equal(await page.locator('#semantic-find-host [data-mode]').count(), 0, 'no mode switch');
@@ -65,6 +65,13 @@ try {
     return text === 'Indexing…' && { n: [...CSS.highlights.values()].reduce((n, h) => n + h.size, 0) };
   }, null, { polling: 'raf' });
   assert.equal((await duringIndexing.jsonValue()).n, 0, 'no highlight while indexing');
+
+  // Stored values outside their range fall back into it.
+  await settingsButton.click();
+  assert.equal(await panel.locator('input[name=chunkLength]').inputValue(), '1');
+  assert.equal(await panel.locator('input[name=overlap]').inputValue(), '0');
+  await panel.locator('#reset').click();
+  await settingsButton.click();
 
   await check('exact', 'rollback', /rollback/i);
   await check('typo', 'bandwitdh', /bandwidth/);
