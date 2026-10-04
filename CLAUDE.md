@@ -15,12 +15,14 @@ Success means:
 - **English only.** German and other languages come later.
 - **Mode switch in the overlay**: `Word` (exact and fuzzy, like Cmd+F) and `Semantic` (hybrid ranking). The user picks per search.
 - **Search per keystroke.** Fuzzy results update instantly. The semantic query runs after a short debounce (about 150 ms). Budget: results visible within 250 ms of the last keystroke.
-- **Score threshold.** Only show semantic results with cosine similarity of at least 0.6 (default, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the benchmark also reports a calibrated threshold per model to check whether 0.6 holds.
+- **Score threshold.** Only show semantic results with cosine similarity of at least 0.35 (default for MiniLM, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the threshold is set per model in `extension/src/model.ts` and the benchmark reports a calibrated value for each. The first plan was 0.6, but that hid 21 of 25 correct MiniLM answers on the model-pick test set. Passages that contain the query words literally are shown even below the threshold.
 - **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
 - **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
 - **Tuning panel (dev mode).** Sliders in the overlay for: score threshold, minimum and maximum highlight length (in sentences), and fuzzy vs semantic weight. Show the raw score next to each result. This is for testing and building intuition, hidden for normal users.
 - **Shortcut**: Cmd+Shift+F for v1.
-- **Model weights are bundled** in the extension (decided). No download, no host permission, works offline from the first use.
+- **Model for v1**: `Xenova/all-MiniLM-L6-v2`.
+- **Model weights are bundled** in the extension (decided). `npm run fetch-model` downloads them from Hugging Face once at build time. No download at runtime, no host permission, works offline from the first use.
+- **Weights are fp16** (45 MB for MiniLM), not q8. WebGPU cannot speed up q8 weights. On a 12,300 word page, indexing took 1.1 s with fp16 on WebGPU and 5.8 s with q8 on WASM. The same fp16 file also runs on the WASM fallback.
 - **Target hardware**: Apple M-series MacBook, recent Chrome. Report WASM numbers as well, but WebGPU on M-series is the target.
 
 ## How it works (short version)
@@ -33,7 +35,7 @@ Success means:
 6. **Hybrid**: combine the semantic score with a fuzzy string score (edit distance) so exact words and typos still rank well. Semantic models alone are weak on single-word typo matching.
 7. **Show**: highlight the top matches and scroll to the best one.
 
-Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available and WASM as fallback. Quantized (q8) weights keep downloads small.
+Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available and WASM as fallback. Half-precision (fp16) weights are used, because they run on both.
 
 ## Tasks
 
@@ -56,7 +58,7 @@ Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available a
 | `Xenova/gte-small` | Strong English retrieval, 384 dims, no prefixes needed | ~34 MB |
 
 Plus a **no-model baseline** (fuzzy only) to prove the model earns its cost.
-Note: bge works best with its query instruction prefix. MiniLM and gte need none. Check each model card. Sizes are estimates until verified.
+Note: bge works best with its query instruction prefix. MiniLM and gte need none. Check each model card. The q8 sizes are for comparison only. The extension ships fp16 weights, which are about twice as large.
 
 ### 4. Test cases and automated benchmark
 - Collect 15 to 20 saved English HTML pages: docs, news, Wikipedia, long-form articles.
@@ -81,6 +83,35 @@ Note: bge works best with its query instruction prefix. MiniLM and gte need none
 - In-extension logging (local only, opt-in): time from opening search to clicking a result, number of query rewrites, whether a result was accepted.
 - Small user study: participants get find tasks on test pages, half with Cmd+F, half with the extension. Compare time-to-find and success rate.
 - Export logs as CSV for analysis.
+
+## Run the extension in Chrome
+
+Build once (needs Node 22 and network access to huggingface.co for the model download):
+
+```
+cd extension
+npm install
+npm run fetch-model
+npm run build
+```
+
+Load it:
+
+1. Open `chrome://extensions`.
+2. Turn on "Developer mode" (top right).
+3. Click "Load unpacked" and pick the `extension/dist` folder.
+
+Use it:
+
+- Open any normal web page and press Cmd+Shift+F, or click the extension icon in the toolbar. It does not run on `chrome://` pages, the Chrome Web Store or the PDF viewer.
+- Type a query. Switch between `Word` and `Semantic` in the overlay.
+- Enter and Shift+Enter move between results. Esc closes.
+- Alt+D inside the overlay toggles the dev panel with sliders and raw scores.
+- If the shortcut does nothing, check `chrome://extensions/shortcuts`. Another extension may hold the same keys.
+
+After a code change, run `npm run build` again, click the reload icon on the extension card in `chrome://extensions`, and reload the page.
+
+Tests: `npm run typecheck` and `npm run smoke` (run `npx playwright install chromium` once before the smoke test).
 
 ## Proposed repo structure
 
@@ -132,7 +163,7 @@ SuperF/              # repo root
 
 ## Tech stack
 
-- TypeScript, Vite (or similar) for building the extension
+- TypeScript, esbuild for building the extension
 - Transformers.js for inference
 - Fuse.js or a small custom Damerau-Levenshtein for fuzzy scoring
 - Playwright for benchmarks
