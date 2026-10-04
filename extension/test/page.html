@@ -3,7 +3,7 @@
 <head><meta charset="utf-8"><title>Relay CLI documentation</title>
 <style>body{font:16px/1.6 system-ui;max-width:700px;margin:40px auto}section{margin-bottom:900px}</style></head>
 <body>
-<nav><a href="#a">Install</a> <a href="#b">Deploy</a> <a href="#c">Billing</a></nav>
+<nav><a href="#a">Install</a> <a href="#b">Deploy</a> <a href="#c">Billing</a> <a href="#d">Domains</a></nav>
 <h1>Relay CLI documentation</h1>
 <section id="a"><h2>Getting started</h2>
 <p>Install the Relay CLI with <code>npm install -g relay-cli</code>. The tool requires Node 18 or newer.</p>
@@ -18,4 +18,6 @@
 <p>The free plan includes 100 GB of bandwidth per month. Additional traffic costs five dollars per 100 GB.</p>
 <p>To close your account, open Billing and choose Delete team. All projects and deployments are removed permanently.</p>
 <p>If a build fails with exit code 137, the process ran out of memory. Reduce parallel jobs or upgrade to a larger build machine.</p></section>
+<section id="d"><h2>Custom domains</h2>
+<p>Custom domains are added in the project settings. Point a CNAME record at the address shown there. The TLS certificate is issued automatically within a few minutes. Wildcard domains need a paid plan. Each project can have up to 50 domains.</p></section>
 </body></html>

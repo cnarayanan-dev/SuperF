@@ -1,4 +1,4 @@
-// Sentence splitting and grouping into chunks. Pure functions on plain text.
+// Sentence splitting. Pure functions on plain text.
 
 export type Span = [start: number, end: number];
 
@@ -31,16 +31,5 @@ export function splitSentences(text: string): Span[] {
     start = m.index + m[0].length;
   }
   pushTrimmed(text, start, text.length, out);
-  return out;
-}
-
-// Groups of `max` sentences. A trailing group shorter than `min` joins the group before it.
-export function groupSentences(sentences: Span[], min: number, max: number): Span[] {
-  const out: Span[] = [];
-  for (let i = 0; i < sentences.length; i += max) {
-    const group = sentences.slice(i, i + max);
-    if (group.length < min && out.length) out[out.length - 1][1] = group[group.length - 1][1];
-    else out.push([group[0][0], group[group.length - 1][1]]);
-  }
   return out;
 }

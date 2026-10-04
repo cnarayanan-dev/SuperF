@@ -18,7 +18,7 @@ Success means:
 - **Score threshold.** Only show semantic results with cosine similarity of at least 0.35 (default for MiniLM, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the threshold is set per model in `extension/src/model.ts` and the benchmark reports a calibrated value for each. The first plan was 0.6, but that hid 21 of 25 correct MiniLM answers on the model-pick test set. Passages with a strong fuzzy score (0.8 or more, `STRONG_FUZZY` in `extension/src/search/rank.ts`) are shown even below the threshold. That covers literal matches and typo queries like "bandwitdh", which `Word` mode used to serve.
 - **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
 - **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
-- **Settings panel.** A Settings button in the overlay opens a panel with sliders for score threshold, semantic weight, and minimum and maximum sentences per chunk. It lists the results with semantic, fuzzy and blended score, and shows the chunk count, indexing time and device, keystroke to result time, model time and model name. Threshold and weight re-rank without a model call. Reset restores the defaults. Settings and the open state of the panel are stored locally.
+- **Settings panel.** A Settings button in the overlay opens a panel with sliders for chunk length (1 to 6 sentences), overlap (0 to 2, always less than chunk length), score threshold and semantic weight. Chunk length and overlap index the page again when the slider is released. It lists the results with semantic, fuzzy and blended score, and shows the chunk count, indexing time and device, keystroke to result time, model time and model name. Threshold and weight re-rank without a model call. Reset restores the defaults. Settings and the open state of the panel are stored locally.
 - **Shortcut**: Cmd+Shift+K for v1 (Ctrl+Shift+K on Windows and Linux). Cmd+Shift+F and Cmd+Shift+J were tried first but are blocked in Chrome, so they were dropped.
 - **Model for v1**: `Xenova/all-MiniLM-L6-v2`.
 - **Model weights are bundled** in the extension (decided). `npm run fetch-model` downloads them from Hugging Face once at build time. No download at runtime, no host permission, works offline from the first use.
@@ -28,7 +28,7 @@ Success means:
 ## How it works (short version)
 
 1. **Extract**: the content script walks the page DOM and collects visible text.
-2. **Chunk**: text is split into small pieces (sentences or short paragraphs, roughly 30 to 100 words, with slight overlap). Each chunk remembers which DOM node it came from.
+2. **Chunk**: each paragraph is split into sentences, and the sentences are grouped into chunks. Chunk length (default 2 sentences) and overlap (default 0) are settings. Chunks advance by chunk length minus overlap, and the last chunk of a paragraph may be shorter. Each chunk remembers its sentences and where they sit in the DOM. The chunking function is `extension/src/search/chunks.ts`.
 3. **Embed**: a small transformer model turns each chunk into a vector (e.g. 384 numbers). Texts with similar meaning get vectors that point in similar directions.
 4. **Query**: the user's query is embedded the same way.
 5. **Rank**: cosine similarity between the query vector and every chunk vector. Highest scores win.
@@ -111,7 +111,7 @@ Use it:
 
 After a code change, run `npm run build` again, click the reload icon on the extension card in `chrome://extensions`, and reload the page.
 
-Tests: `npm run typecheck` and `npm run smoke` (run `npx playwright install chromium` once before the smoke test).
+Tests: `npm run typecheck`, `npm test` (Node unit tests for the chunking function) and `npm run smoke` (run `npx playwright install chromium` once before the smoke test).
 
 ## Proposed repo structure
 
@@ -171,7 +171,7 @@ SuperF/              # repo root
 
 ## Open questions
 
-- Chunk size and overlap: test 1 sentence vs 2 to 3 sentences
+- Chunk size and overlap: both can now be tried in the settings panel on a real page. Which values become the default is open until the benchmark can measure them (Task 4).
 - How to weight fuzzy vs semantic scores (fixed, or by query length)
 - What happens to an in-flight semantic query when the user keeps typing (cancel or drop stale results)?
 - Handling dynamic pages (infinite scroll, SPAs): re-index on DOM changes?

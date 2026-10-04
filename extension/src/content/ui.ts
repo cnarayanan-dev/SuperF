@@ -19,8 +19,8 @@ export const OVERLAY_HTML = `
   <div id="panel" hidden>
     <label>Score threshold <input type="range" name="threshold" min="0" max="1" step="0.01"><output></output></label>
     <label>Semantic weight <input type="range" name="weight" min="0" max="1" step="0.05"><output></output></label>
-    <label>Min sentences <input type="range" name="minS" min="1" max="5" step="1"><output></output></label>
-    <label>Max sentences <input type="range" name="maxS" min="1" max="5" step="1"><output></output></label>
+    <label>Chunk length <input type="range" name="chunkLen" min="1" max="6" step="1"><output></output></label>
+    <label>Overlap <input type="range" name="overlap" min="0" max="2" step="1"><output></output></label>
     <dl id="stats">
       <dt>Chunks</dt><dd id="st-chunks"></dd>
       <dt>Indexing</dt><dd id="st-index"></dd>

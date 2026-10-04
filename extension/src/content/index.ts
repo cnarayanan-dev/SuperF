@@ -1,22 +1,25 @@
 // Content script: overlay UI, search orchestration and highlighting.
 import { fuzzyMatch, tokenize } from '../search/fuzzy.ts';
+import { clampOverlap, toRanges, type SentenceSpan } from '../search/chunks.ts';
 import { hybridScores, isShown } from '../search/rank.ts';
 import type { ErrorResponse, IndexResponse, QueryResponse, Request } from '../messages.ts';
 import { MODEL } from '../model.ts';
 import { buildChunks, extractBlocks, toRange, type Block, type Chunk } from './dom.ts';
 import { OVERLAY_CSS, OVERLAY_HTML, PAGE_CSS } from './ui.ts';
 
-interface Settings { threshold: number; weight: number; minS: number; maxS: number; panel: boolean }
-type SliderKey = 'threshold' | 'weight' | 'minS' | 'maxS';
+interface Settings { threshold: number; weight: number; chunkLen: number; overlap: number; panel: boolean }
+type SliderKey = 'threshold' | 'weight' | 'chunkLen' | 'overlap';
+// These change the chunks, so the page is indexed again when the slider is released.
+const CHUNK_KEYS: SliderKey[] = ['chunkLen', 'overlap'];
 interface Result {
-  ranges: [block: number, start: number, end: number][];
+  ranges: SentenceSpan[]; // one per paragraph the highlight touches
   chunk: number;
   fuzzy: number;
   semantic: number;
   hybrid: number;
 }
 
-const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, minS: 1, maxS: 2, panel: false };
+const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, chunkLen: 2, overlap: 0, panel: false };
 const DEBOUNCE_MS = 150;
 const BATCH = 32;
 const MAX_RESULTS = 10;
@@ -25,7 +28,9 @@ const MAX_RESULTS = 10;
 function loadSettings(stored: Record<string, unknown> = {}): Settings {
   const out: Record<string, unknown> = { ...DEFAULTS };
   for (const k in out) if (typeof stored[k] === typeof out[k]) out[k] = stored[k];
-  return out as unknown as Settings;
+  const settings = out as unknown as Settings;
+  settings.overlap = clampOverlap(settings.chunkLen, settings.overlap);
+  return settings;
 }
 
 declare global { interface Window { __semanticFind?: boolean } }
@@ -88,7 +93,7 @@ async function init(): Promise<() => void> {
     countEl.textContent = results.length ? `${current + 1}/${results.length}` : '';
     const all: Range[] = [];
     results.forEach((r, i) => {
-      const ranges = r.ranges.map(([b, s, e]) => toRange(blocks[b], s, e));
+      const ranges = r.ranges.map((s) => toRange(blocks[s.para], s.start, s.end));
       if (i !== current) return void all.push(...ranges);
       const cur = new Highlight(...ranges);
       cur.priority = 1;
@@ -128,7 +133,7 @@ async function init(): Promise<() => void> {
 
   // ---------- semantic search ----------
   function ensureIndex(): Promise<void> {
-    const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${settings.minS}:${settings.maxS}`;
+    const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${settings.chunkLen}:${settings.overlap}`;
     if (index?.sig === sig) return index.done;
     const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0, device: '', ready: false };
     index = mine;
@@ -161,7 +166,7 @@ async function init(): Promise<() => void> {
     const { semantic, fuzzy } = last;
     const hybrid = hybridScores(semantic, fuzzy, settings.weight);
     results = chunks
-      .map((c, i): Result => ({ ranges: [[c.block, c.start, c.end]], chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
+      .map((c, i): Result => ({ ranges: toRanges(c.sentences), chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
       .filter((x) => isShown(x.semantic, x.fuzzy, settings.threshold))
       .sort((x, y) => y.hybrid - x.hybrid)
       .slice(0, MAX_RESULTS);
@@ -211,7 +216,7 @@ async function init(): Promise<() => void> {
 
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
-    chunks = buildChunks(blocks, settings.minS, settings.maxS);
+    chunks = buildChunks(blocks, settings.chunkLen, settings.overlap);
     // Results and scores point into the old chunks.
     results = [];
     last = null;
@@ -264,15 +269,21 @@ async function init(): Promise<() => void> {
     reindex();
     search();
   };
-  sliders.forEach((s) => s.addEventListener('input', () => {
+  sliders.forEach((s) => {
     const key = s.name as SliderKey;
-    settings[key] = Number(s.value);
-    if (settings.minS > settings.maxS) settings[key === 'minS' ? 'maxS' : 'minS'] = settings[key];
-    save();
-    syncUi();
-    if (key === 'minS' || key === 'maxS') { reindex(); search(); }
-    else if (!busy) rank(); // a pending search picks the new value up when it lands
-  }));
+    s.addEventListener('input', () => {
+      settings[key] = Number(s.value);
+      settings.overlap = clampOverlap(settings.chunkLen, settings.overlap);
+      save();
+      syncUi();
+      // A pending search picks the new value up when it lands.
+      if (!CHUNK_KEYS.includes(key) && !busy) rank();
+    });
+    // Fires when the slider is released, so dragging across values indexes once.
+    s.addEventListener('change', () => {
+      if (CHUNK_KEYS.includes(key)) { reindex(); search(); }
+    });
+  });
 
   return () => (host.style.display === 'none' ? open() : close());
 }

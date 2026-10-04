@@ -1,7 +1,8 @@
 // DOM text extraction. Each chunk remembers where its text sits in the page,
 // so a result can be turned back into a Range for highlighting.
 import { tokenize, type Token } from '../search/fuzzy.ts';
-import { groupSentences, splitSentences } from '../search/sentences.ts';
+import { chunkSentences, chunkText, type SentenceSpan } from '../search/chunks.ts';
+import { splitSentences } from '../search/sentences.ts';
 
 export interface Block {
   text: string;
@@ -9,9 +10,7 @@ export interface Block {
 }
 
 export interface Chunk {
-  block: number;
-  start: number; // offsets in the block text
-  end: number;
+  sentences: SentenceSpan[]; // the paragraph of a sentence span is its block
   text: string;
   tokens: Token[]; // offsets relative to the chunk text
 }
@@ -71,15 +70,12 @@ export function extractBlocks(root: Element, ignore: Element): Block[] {
   return blocks;
 }
 
-export function buildChunks(blocks: Block[], minSentences: number, maxSentences: number): Chunk[] {
-  const chunks: Chunk[] = [];
-  blocks.forEach((b, block) => {
-    for (const [start, end] of groupSentences(splitSentences(b.text), minSentences, maxSentences)) {
-      const text = b.text.slice(start, end);
-      chunks.push({ block, start, end, text, tokens: tokenize(text) });
-    }
+export function buildChunks(blocks: Block[], chunkLength: number, overlap: number): Chunk[] {
+  const texts = blocks.map((b) => b.text);
+  return chunkSentences(texts.map(splitSentences), chunkLength, overlap).map((sentences) => {
+    const text = chunkText(texts, sentences);
+    return { sentences, text, tokens: tokenize(text) };
   });
-  return chunks;
 }
 
 export function toRange(block: Block, start: number, end: number): Range {

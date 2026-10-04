@@ -47,6 +47,11 @@ const highlighted = () => page.evaluate(() => [...CSS.highlights.values()].reduc
 const ui = (selector) => page.locator(`#semantic-find-host ${selector}`);
 const slider = (name) => ui(`input[name=${name}]`);
 const valueOf = (name) => ui(`label:has(input[name=${name}]) output`).textContent();
+const settled = () => page.waitForFunction(() => {
+  const root = document.querySelector('#semantic-find-host').shadowRoot;
+  return !/Searching|Indexing/.test(root.getElementById('status').textContent) && root.getElementById('st-index').textContent !== '…';
+});
+const chunkCount = async () => { await settled(); return Number(await ui('#st-chunks').textContent()); };
 const stored = async () => (await sw.evaluate(() => chrome.storage.local.get('settings'))).settings;
 
 try {
@@ -117,6 +122,29 @@ try {
   await ui('#reset').click();
   assert.deepEqual([await valueOf('threshold'), await valueOf('weight')], ['0.35', '0.7']);
   assert.deepEqual([(await stored()).threshold, (await stored()).weight], [0.35, 0.7]);
+
+  // Chunk length and overlap index the page again when the slider is released. The panel shows the new chunk count.
+  assert.equal('minS' in (await stored()) || 'maxS' in (await stored()), false, 'minimum and maximum sentence settings are gone');
+  await check('exact', 'rollback', /rollback/i);
+  const atDefault = await chunkCount();
+  await slider('chunkLen').fill('1');
+  assert.equal(await valueOf('chunkLen'), '1');
+  const atOne = await chunkCount();
+  assert.ok(atOne > atDefault, `chunk length 1 gives more chunks (${atOne}) than 2 (${atDefault})`);
+  assert.match(await currentText(), /^[^.]*rollback[^.]*\.$/i, 'the chunk is one sentence');
+  await slider('overlap').fill('2');
+  assert.equal(await valueOf('overlap'), '0', 'overlap stays below chunk length');
+  await slider('chunkLen').fill('3');
+  const atThree = await chunkCount();
+  await slider('overlap').fill('2');
+  assert.equal(await valueOf('overlap'), '2');
+  assert.ok(await chunkCount() > atThree, 'overlap gives more chunks');
+  assert.match(await ui('#st-index').textContent(), /^\d+ ms \(/, 'the panel shows the indexing time of this configuration');
+  await slider('chunkLen').fill('2');
+  assert.equal(await valueOf('overlap'), '1', 'lowering the chunk length lowers the overlap');
+  await ui('#reset').click();
+  assert.deepEqual([await valueOf('chunkLen'), await valueOf('overlap')], ['2', '0']);
+  assert.equal(await chunkCount(), atDefault);
 
   await check('paraphrase', 'how to delete my account', /close your account/);
   await check('paraphrase', 'why did my build get killed', /ran out of memory/);
