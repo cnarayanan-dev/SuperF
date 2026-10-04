@@ -221,6 +221,48 @@ try {
   assert.equal(await valueOf('hlLen'), '2', 'Reset restores highlight length 2');
   await check('exact', 'rollback', /rollback/i);
 
+  // Chunks may cross paragraph borders. The checkbox is off by default.
+  const cross = ui('#cross');
+  assert.equal(await cross.isChecked(), false);
+  await setChunkLen(4);
+  const within = await chunkCount();
+  await cross.check();
+  assert.doesNotMatch(await indexStat(), /reused/, 'crossing is part of the configuration');
+  const crossing = await chunkCount();
+  assert.ok(crossing < within, `crossing gives fewer chunks (${crossing}) than staying inside paragraphs (${within})`);
+
+  // A highlight that spans two paragraphs is drawn in both, and scrolling goes to its start.
+  await slider('hlLen').fill('3');
+  await check('2 paras', 'rollback', /rollback/i);
+  const spanning = await page.evaluate(() => [...CSS.highlights.get('sf-current')].map((r) => {
+    const el = r.startContainer.parentElement.closest('p, h1, h2, nav');
+    const box = r.getBoundingClientRect();
+    return { same: el === r.endContainer.parentElement.closest('p, h1, h2, nav'), index: [...document.querySelectorAll('p, h1, h2, nav')].indexOf(el), visible: box.top >= 0 && box.bottom <= innerHeight };
+  }));
+  assert.ok(spanning.length >= 2, 'the highlight has one range per paragraph');
+  assert.ok(spanning.every((r) => r.same), 'each range stays inside its paragraph');
+  assert.equal(new Set(spanning.map((r) => r.index)).size, spanning.length, 'the ranges are in different paragraphs');
+  assert.ok(spanning[0].visible, 'the start of the highlight is scrolled into view');
+  assert.equal(sentenceCount((await currentText()).replaceAll(' | ', ' ')), 3);
+
+  // Highlight picking by sentence works inside a chunk that covers several paragraphs.
+  await slider('hlLen').fill('2');
+  await check('pick x', 'rollback', /rollback/i);
+  assert.ok(sentenceCount((await currentText()).replaceAll(' | ', ' ')) <= 2);
+  assert.match(await ui('#st-highlight').textContent(), /^by sentence/);
+
+  // Off and on again: both indexes are still there.
+  await cross.uncheck();
+  assert.match(await indexStat(), /reused/);
+  assert.equal(await chunkCount(), within, 'with the checkbox off the chunks are as before');
+  await cross.check();
+  assert.match(await indexStat(), /reused/);
+  assert.equal(await chunkCount(), crossing);
+  await ui('#reset').click();
+  assert.equal(await cross.isChecked(), false, 'Reset turns crossing off');
+  assert.equal((await stored()).cross, false);
+  await check('exact', 'rollback', /rollback/i);
+
   // Only a few indexes are kept per tab. The least recently used one is dropped.
   for (const n of [1, 3, 5, 6]) await setChunkLen(n);
   assert.doesNotMatch(await setChunkLen(2), /reused/, 'after four other configurations chunk length 2 is indexed again');
@@ -273,6 +315,9 @@ try {
   assert.equal(await page.locator('#semantic-find-host').isVisible(), false);
   assert.equal(await page.evaluate(() => CSS.highlights.size), 0);
   console.log('\nsmoke test passed');
+} catch (e) {
+  console.log('overlay state:', await shadowEval((root) => ({ status: root.getElementById('status').textContent, index: root.getElementById('st-index').textContent, highlight: root.getElementById('st-highlight').textContent, query: root.getElementById('q').value })).catch(() => 'not available'));
+  throw e;
 } finally {
   await ctx.close();
   server.close();

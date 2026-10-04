@@ -8,7 +8,7 @@ import { MODEL } from '../model.ts';
 import { buildChunks, extractBlocks, toRange, type Block, type Chunk } from './dom.ts';
 import { OVERLAY_CSS, OVERLAY_HTML, PAGE_CSS } from './ui.ts';
 
-interface Settings { threshold: number; weight: number; chunkLen: number; overlap: number; hlLen: number; panel: boolean }
+interface Settings { threshold: number; weight: number; chunkLen: number; overlap: number; cross: boolean; hlLen: number; panel: boolean }
 type SliderKey = 'threshold' | 'weight' | 'chunkLen' | 'overlap' | 'hlLen';
 // These change the chunks, so the page is indexed again when the slider is released.
 const CHUNK_KEYS: SliderKey[] = ['chunkLen', 'overlap'];
@@ -31,7 +31,7 @@ interface Result {
   hybrid: number;
 }
 
-const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, chunkLen: 2, overlap: 0, hlLen: 2, panel: false };
+const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, chunkLen: 2, overlap: 0, cross: false, hlLen: 2, panel: false };
 const DEBOUNCE_MS = 150;
 const BATCH = 32;
 const MAX_RESULTS = 10;
@@ -76,6 +76,7 @@ async function init(): Promise<() => void> {
   const input = $<HTMLInputElement>('q');
   const countEl = $('count'), statusEl = $('status'), panelEl = $('panel'), listEl = $('list'), settingsBtn = $('settings');
   const sliders = [...shadow.querySelectorAll<HTMLInputElement>('input[type=range]')];
+  const crossEl = $<HTMLInputElement>('cross');
   $('st-model').textContent = MODEL.id;
 
   // ---------- state ----------
@@ -164,7 +165,7 @@ async function init(): Promise<() => void> {
   // ---------- semantic search ----------
   function ensureIndex(): Promise<void> {
     // Everything that changes the chunks is part of the key. Highlight and ranking settings are not.
-    const key = `${settings.chunkLen}:${settings.overlap}|${pageSig}`;
+    const key = `${settings.chunkLen}:${settings.overlap}:${settings.cross}|${pageSig}`;
     const known = lruGet(indexes, key);
     if (known) {
       // A configuration that was already tried on this page text comes back without embedding anything.
@@ -290,7 +291,7 @@ async function init(): Promise<() => void> {
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
     pageSig = textSignature(blocks.map((b) => b.text));
-    chunks = buildChunks(blocks, settings.chunkLen, settings.overlap);
+    chunks = buildChunks(blocks, settings.chunkLen, settings.overlap, settings.cross);
     // Results and scores point into the old chunks.
     results = [];
     last = null;
@@ -301,6 +302,7 @@ async function init(): Promise<() => void> {
   function syncUi(): void {
     panelEl.hidden = !settings.panel;
     settingsBtn.setAttribute('aria-expanded', String(settings.panel));
+    crossEl.checked = settings.cross;
     sliders.forEach((s) => {
       const key = s.name as SliderKey;
       s.value = String(settings[key]);
@@ -343,6 +345,7 @@ async function init(): Promise<() => void> {
     reindex();
     search();
   };
+  crossEl.addEventListener('change', () => { settings.cross = crossEl.checked; save(); reindex(); search(); });
   sliders.forEach((s) => {
     const key = s.name as SliderKey;
     s.addEventListener('input', () => {

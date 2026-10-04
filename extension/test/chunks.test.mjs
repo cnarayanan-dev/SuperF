@@ -47,6 +47,17 @@ test('a chunk never leaves its paragraph', () => {
   assert.deepEqual(chunked(['A', '', 'B'], 2, 0), ['A.', 'B.']);
 });
 
+test('with crossing on, a chunk can cover several paragraphs', () => {
+  assert.deepEqual(chunked(['A B C', 'D E'], 2, 0, true), ['A. B.', 'C. | D.', 'E.']);
+  assert.deepEqual(chunked(['A', 'B', 'C D'], 4, 0, true), ['A. | B. | C. D.']);
+  assert.deepEqual(chunked(['A B', '', 'C D E'], 3, 1, true), ['A. B. | C.', 'C. D. E.']);
+});
+
+test('crossing is off unless asked for', () => {
+  assert.deepEqual(chunked(['A', 'B', 'C D'], 4, 0), chunked(['A', 'B', 'C D'], 4, 0, false));
+  assert.deepEqual(chunked(['A', 'B', 'C D'], 4, 0, false), ['A.', 'B.', 'C. D.']);
+});
+
 test('overlap is clamped below chunk length', () => {
   assert.equal(clampOverlap(2, 2), 1);
   assert.equal(clampOverlap(1, 2), 0);

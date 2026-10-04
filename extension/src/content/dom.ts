@@ -70,9 +70,9 @@ export function extractBlocks(root: Element, ignore: Element): Block[] {
   return blocks;
 }
 
-export function buildChunks(blocks: Block[], chunkLength: number, overlap: number): Chunk[] {
+export function buildChunks(blocks: Block[], chunkLength: number, overlap: number, cross: boolean): Chunk[] {
   const texts = blocks.map((b) => b.text);
-  return chunkSentences(texts.map(splitSentences), chunkLength, overlap).map((sentences) => {
+  return chunkSentences(texts.map(splitSentences), chunkLength, overlap, cross).map((sentences) => {
     const text = chunkText(texts, sentences);
     return { sentences, text, tokens: tokenize(text) };
   });

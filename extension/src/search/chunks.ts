@@ -10,18 +10,20 @@ export function clampOverlap(chunkLength: number, overlap: number): number {
 }
 
 // paragraphs[p] holds the sentence spans of paragraph p. Chunks advance by chunk length minus
-// overlap and never leave their paragraph. The last chunk of a paragraph may be shorter.
-export function chunkSentences(paragraphs: Span[][], chunkLength: number, overlap: number): SentenceSpan[][] {
+// overlap. The last chunk of a sequence may be shorter. With cross off, each paragraph is its own
+// sequence, so a chunk never leaves its paragraph. With cross on, all sentences of the page form
+// one sequence and a chunk can cover several paragraphs.
+export function chunkSentences(paragraphs: Span[][], chunkLength: number, overlap: number, cross = false): SentenceSpan[][] {
   const step = chunkLength - clampOverlap(chunkLength, overlap);
+  const spans = paragraphs.map((sentences, para) => sentences.map(([start, end]): SentenceSpan => ({ para, start, end })));
   const out: SentenceSpan[][] = [];
-  paragraphs.forEach((sentences, para) => {
-    const seq = sentences.map(([start, end]): SentenceSpan => ({ para, start, end }));
+  for (const seq of cross ? [spans.flat()] : spans) {
     for (let i = 0; i < seq.length; i += step) {
       out.push(seq.slice(i, i + chunkLength));
       // This chunk reached the end. A further one would only repeat its sentences.
       if (i + chunkLength >= seq.length) break;
     }
-  });
+  }
   return out;
 }
 

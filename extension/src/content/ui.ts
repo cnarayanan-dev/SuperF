@@ -17,6 +17,7 @@ export const OVERLAY_HTML = `
   </div>
   <div class="row"><span id="status"></span></div>
   <div id="panel" hidden>
+    <label class="check"><input type="checkbox" id="cross"> Chunks may cross paragraphs</label>
     <label>Highlight length <input type="range" name="hlLen" min="1" max="3" step="1"><output></output></label>
     <label>Score threshold <input type="range" name="threshold" min="0" max="1" step="0.01"><output></output></label>
     <label>Semantic weight <input type="range" name="weight" min="0" max="1" step="0.05"><output></output></label>
@@ -61,6 +62,7 @@ button:hover, #settings[aria-expanded=true] { background: rgba(128, 128, 128, .1
 #panel { margin-top: 8px; padding-top: 8px; border-top: 1px solid #d0d7de; }
 #panel[hidden] { display: none; }
 label { display: grid; grid-template-columns: 130px 1fr 36px; align-items: center; gap: 6px; }
+label.check { display: flex; margin: 2px 0; }
 output { text-align: right; font-variant-numeric: tabular-nums; }
 #stats { display: grid; grid-template-columns: 130px 1fr; gap: 2px 6px; margin: 8px 0; font-size: 12px; }
 #stats dt { color: #656d76; }
