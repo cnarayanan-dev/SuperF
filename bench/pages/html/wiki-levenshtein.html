@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html class="client-nojs vector-feature-language-in-header-enabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Levenshtein distance - Wikipedia</title>
+<script>(function(){var className="client-js vector-feature-language-in-header-enabled vector-feature-language-in-main-menu-disabled vector-feature-language-in-main-page-header-disabled vector-feature-page-tools-pinned-disabled vector-feature-toc-pinned-clientpref-1 vector-feature-main-menu-pinned-disabled vector-feature-limited-width-clientpref-1 vector-feature-limited-width-content-enabled vector-feature-custom-font-size-clientpref-1 vector-feature-appearance-pinned-clientpref-1 skin-theme-clientpref-day vector-sticky-header-enabled vector-toc-available skin-thumbsize-clientpref-standard";var cookie=document.cookie.match(/(?:^|; )enwikimwclientpreferences=([^;]+)/);if(cookie){cookie[1].split('%2C').forEach(function(pref){className=className.replace(new RegExp('(^| )'+pref.replace(/-clientpref-\w+$|[^\w-]+/g,'')+'-clientpref-\\w+( |$)'),'$1'+pref+'$2');});}document.documentElement.className=className;}());RLCONF={"wgBreakFrames":false,"wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgRequestId":"70e2f541-67d7-4fab-906f-1c9d096c6ecb","wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Levenshtein_distance","wgTitle":"Levenshtein distance","wgCurRevisionId":1375547008,"wgRevisionId":1375547008,"wgArticleId":406418,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Articles with short description","Short description is different from Wikidata","Use dmy dates from April 2017","String metrics","Dynamic programming","Quantitative linguistics","Computational linguistics"],"wgPageViewLanguage":"en","wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgRelevantPageName":"Levenshtein_distance","wgRelevantArticleId":406418,"wgTempUserName":null,"wgIsProbablyEditable":true,"wgRelevantPageIsProbablyEditable":true,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgNoticeProject":"wikipedia","wgFlaggedRevsParams":{"tags":{"status":{"levels":1}},"namespaces":[0,4]},"wgConfirmEditCaptchaNeededForGenericEdit":"hcaptcha","wgConfirmEditForceShowCaptcha":false,"wgConfirmEditHCaptchaSiteKey":"5d0c670e-a5f4-4258-ad16-1f42792c9c62","wgMediaViewerOnClick":true,"wgMediaViewerEnabledByDefault":true,"wgMediaViewerMobileBeta":false,"wgPopupsFlags":0,"wgVisualEditor":{"pageLanguageCode":"en","pageLanguageDir":"ltr","pageVariantFallbacks":"en"},"wgMFDisplayWikibaseDescriptions":{"search":true,"watchlist":true,"tagline":false,"nearby":true},"wgWMESchemaEditAttemptStepOversample":false,"wgWMEPageLength":20000,"wgParsoidHtmlVersion":"2.8.0","parsermigration-parsoid":true,"wgPageAssessments":{"Computer science":{"class":"C","importance":"Mid"},"Project-independent assessment":{"class":"C","importance":""}},"wgTestKitchenUserExperiments":{"overrides":[],"enrolled":[],"assigned":[],"subject_ids":[]},"wgEditSubmitButtonLabelPublish":true,"wgVisualEditorPageIsDisambiguation":false,"wgULSPosition":"interlanguage","wgULSisCompactLinksEnabled":false,"wgVector2022LanguageInHeader":true,"wgULSisLanguageSelectorEmpty":false,"wgULSLanguageSelectorV2Enabled":true,"wgWikibaseItemId":"Q496939","wgCheckUserClientHintsHeadersJsApi":["brands","architecture","bitness","fullVersionList","mobile","model","platform","platformVersion"],"wgCheckUserClientHintsInEditRequest":true,"wgPersonalDashboardMenuVisible":false};
+RLSTATE={"ext.globalCssJs.user.styles":"ready","site.styles":"ready","user.styles":"ready","ext.globalCssJs.user":"ready","user":"ready","user.options":"loading","ext.math.styles":"ready","ext.pygments":"ready","ext.cite.parsoid.styles":"ready","ext.cite.styles":"ready","mediawiki.skinning.content.parsoid":"ready","ext.wikimediamessages.styles":"ready","skins.vector.search.codex.styles":"ready","skins.vector.styles":"ready","skins.vector.icons":"ready","ext.visualEditor.desktopArticleTarget.noscript":"ready","ext.uls.interlanguage":"ready","wikibase.client.init":"ready"};RLPAGEMODULES=["ext.math.polyfills","ext.pygments.view","ext.cite.ux-enhancements","mediawiki.page.media","site","mediawiki.page.ready","mediawiki.toc","skins.vector.js","ext.centralNotice.geoIP","ext.centralNotice.startUp","ext.gadget.ReferenceTooltips","ext.gadget.switcher","ext.urlShortener.toolbar","ext.centralauth.centralautologin","ext.testKitchen","ext.wikimediaCustomizations.donorAccountCreation","mmv.bootstrap","ext.popups","ext.visualEditor.desktopArticleTarget.init","ext.echo.centralauth","ext.eventLogging","ext.wikimediaEvents","ext.navigationTiming","ext.uls.interface","ext.cx.eventlogging.campaigns","ext.cx.uls.quick.actions","wikibase.client.vector-2022","wikibase.databox.fromWikidata","ext.checkUser.clientHints","ext.quicksurveys.init","ext.readerExperiments/preferredSources"];</script>
+<script>(RLQ=window.RLQ||[]).push(function(){mw.loader.impl(function(){return["user.options@12s5i",function($,jQuery,require,module){mw.user.tokens.set({"patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});mw.user.options.set({"usecodemirror":1});
+}];});});</script>
+<link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=ext.cite.parsoid.styles%7Cext.cite.styles%7Cext.math.styles%7Cext.pygments%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediamessages.styles%7Cmediawiki.skinning.content.parsoid%7Cskins.vector.icons%2Cstyles%7Cskins.vector.search.codex.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector-2022">
+<script async="" src="/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector-2022"></script>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector-2022">
+<meta name="generator" content="MediaWiki 1.47.0-wmf.22">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta property="og:image" content="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/Levenshtein_distance_animation.gif/1280px-Levenshtein_distance_animation.gif?utm_source=en.wikipedia.org&amp;utm_campaign=index&amp;utm_content=thumbnail">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="782">
+<meta name="viewport" content="width=1120">
+<meta property="og:title" content="Levenshtein distance - Wikipedia">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="//thumb.wikimedia.org">
+<link rel="alternate" type="application/x-wiki" title="Edit this page" href="/w/index.php?title=Levenshtein_distance&amp;action=edit">
+<link rel="apple-touch-icon" href="/static/apple-touch/wikipedia.png">
+<link rel="icon" href="/static/favicon/wikipedia.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="/w/rest.php/v1/search" title="Wikipedia (en)">
+<link rel="EditURI" type="application/rsd+xml" href="//en.wikipedia.org/w/api.php?action=rsd">
+<link rel="canonical" href="https://en.wikipedia.org/wiki/Levenshtein_distance">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/deed.en">
+<link rel="alternate" type="application/atom+xml" title="Wikipedia Atom feed" href="/w/index.php?title=Special:RecentChanges&amp;feed=atom">
+<link rel="dns-prefetch" href="//meta.wikimedia.org" />
+<link rel="dns-prefetch" href="auth.wikimedia.org">
+</head>
+<body class="skin--responsive skin-vector skin-vector-search-vue mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject mw-editable page-Levenshtein_distance rootpage-Levenshtein_distance skin-vector-2022 action-view">
+<div id="mw-aria-live-region" class="mw-aria-live-region" aria-live="polite"></div><a class="mw-jump-link" href="#bodyContent">Jump to content</a>
+<div class="vector-header-container">
+	<header class="vector-header mw-header no-font-mode-scale">
+		<div class="vector-header-start">
+			<nav class="vector-main-menu-landmark" aria-label="Site">
+				
+<div id="vector-main-menu-dropdown" class="vector-dropdown vector-main-menu-dropdown vector-button-flush-left vector-button-flush-right"  title="Main menu" >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-main-menu-dropdown" class="vector-dropdown-checkbox "  aria-label="Main menu"   >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-menu mw-ui-icon-wikimedia-menu cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Main menu</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+				<div id="vector-main-menu-unpinned-container" class="vector-unpinned-container">
+		
+<div id="vector-main-menu" class="vector-main-menu vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-main-menu-pinnable-header vector-pinnable-header-unpinned"
+	data-feature-name="main-menu-pinned"
+	data-pinnable-element-id="vector-main-menu"
+	data-pinned-container-id="vector-main-menu-pinned-container"
+	data-unpinned-container-id="vector-main-menu-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Main menu</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-main-menu.pin" aria-label="Move Main menu to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-main-menu.unpin" aria-label="Hide Main menu">hide</button>
+</div>
+
+	
+<div id="p-navigation" class="vector-menu mw-portlet mw-portlet-navigation"  >
+	<div class="vector-menu-heading">
+		Navigation
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-mainpage-description" class="mw-list-item"><a href="/wiki/Main_Page" title="Visit the main page [z]" accesskey="z"><span>Main page</span></a></li><li id="n-contents" class="mw-list-item"><a href="/wiki/Wikipedia:Contents" title="Guides to browsing Wikipedia"><span>Contents</span></a></li><li id="n-currentevents" class="mw-list-item"><a href="/wiki/Portal:Current_events" title="Articles related to current events"><span>Current events</span></a></li><li id="n-randompage" class="mw-list-item"><a href="/wiki/Special:Random" title="Visit a randomly selected article [x]" accesskey="x"><span>Random article</span></a></li><li id="n-aboutsite" class="mw-list-item"><a href="/wiki/Wikipedia:About" title="Learn about Wikipedia and how it works"><span>About Wikipedia</span></a></li><li id="n-contactpage" class="mw-list-item"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us" title="How to contact Wikipedia"><span>Contact us</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-interaction" class="vector-menu mw-portlet mw-portlet-interaction"  >
+	<div class="vector-menu-heading">
+		Contribute
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="n-help" class="mw-list-item"><a href="/wiki/Help:Contents" title="Guidance on how to use and edit Wikipedia"><span>Help</span></a></li><li id="n-introduction" class="mw-list-item"><a href="/wiki/Help:Introduction" title="Learn how to edit Wikipedia"><span>Learn to edit</span></a></li><li id="n-portal" class="mw-list-item"><a href="/wiki/Wikipedia:Community_portal" title="The hub for editors"><span>Community portal</span></a></li><li id="n-recentchanges" class="mw-list-item"><a href="/wiki/Special:RecentChanges" title="A list of recent changes to Wikipedia [r]" accesskey="r"><span>Recent changes</span></a></li><li id="n-upload" class="mw-list-item"><a href="/wiki/Wikipedia:File_upload_wizard" title="Add images or other media for use on Wikipedia"><span>Upload file</span></a></li><li id="n-specialpages" class="mw-list-item"><a href="/wiki/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q"><span>Special pages</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+</div>
+
+				</div>
+
+	</div>
+</div>
+
+		</nav>
+			
+<a href="/wiki/Main_Page" class="mw-logo">
+	<img class="mw-logo-icon" src="/static/images/icons/enwiki-25.svg" alt="" aria-hidden="true" height="50" width="50">
+	<span class="mw-logo-container skin-invert">
+		<img class="mw-logo-wordmark" alt="Wikipedia" src="/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg" style="width: 8.75em; height: 1.375em;">
+		<img class="mw-logo-tagline" alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11" style="width: 8.75em; height: 0.6875em;">
+	</span>
+</a>
+
+		</div>
+		<div class="vector-header-end">
+			
+<div id="p-search" role="search" class="vector-search-box-vue  vector-search-box-collapses vector-search-box-show-thumbnail vector-search-box-auto-expand-width vector-search-box">
+	<a href="/wiki/Special:Search" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only search-toggle" title="Search Wikipedia [f]" accesskey="f"><span class="vector-icon mw-ui-icon-search mw-ui-icon-wikimedia-search cdx-button__icon"></span>
+
+<span>Search</span>
+	</a>
+	<div class="vector-typeahead-search-container">
+		<div class="cdx-typeahead-search cdx-typeahead-search--show-thumbnail cdx-typeahead-search--auto-expand-width">
+			<form action="/w/index.php" id="searchform" class="cdx-search-input cdx-search-input--has-end-button">
+				<div id="simpleSearch" class="cdx-search-input__input-wrapper"  data-search-loc="header-moved">
+					<div class="cdx-text-input cdx-text-input--has-start-icon">
+						<input
+							class="cdx-text-input__input mw-searchInput" autocomplete="off"
+							 type="search" name="search" placeholder="Search Wikipedia" aria-label="Search Wikipedia" autocapitalize="none" spellcheck="false" title="Search Wikipedia [f]" accesskey="f" id="searchInput"
+							>
+						<span class="cdx-text-input__icon cdx-text-input__start-icon"></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button class="cdx-button cdx-search-input__end-button">Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+
+			<nav class="vector-user-links vector-user-links-wide" aria-label="Personal tools">
+	<div class="vector-user-links-main">
+	
+<div id="p-vector-user-menu-preferences" class="vector-menu mw-portlet emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-vector-user-menu-userpage" class="vector-menu mw-portlet emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+	<nav class="vector-appearance-landmark" aria-label="Appearance">
+		
+<div id="vector-appearance-dropdown" class="vector-dropdown "  title="Change the appearance of the page&#039;s font size, width, and color" >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-appearance-dropdown" class="vector-dropdown-checkbox "  aria-label="Appearance"   >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-appearance mw-ui-icon-wikimedia-appearance cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Appearance</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+			<div id="vector-appearance-unpinned-container" class="vector-unpinned-container">
+				
+			</div>
+		
+	</div>
+</div>
+
+	</nav>
+	
+<div id="p-vector-user-menu-notifications" class="vector-menu mw-portlet emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+	
+<div id="p-vector-user-menu-overflow" class="vector-menu mw-portlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="pt-sitesupport-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en" data-mw-donate-attempt="top_link" class=""><span>Donate</span></a>
+</li>
+<li id="pt-createaccount-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Levenshtein+distance" title="You are encouraged to create an account and log in; however, it is not mandatory" class=""><span>Create account</span></a>
+</li>
+<li id="pt-login-2" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Levenshtein+distance" title="You&#039;re encouraged to log in; however, it&#039;s not mandatory. [o]" accesskey="o" class=""><span>Log in</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+	</div>
+	
+<div id="vector-user-links-dropdown" class="vector-dropdown vector-user-menu vector-button-flush-right vector-user-menu-logged-out vector-user-links-dropdown--collapsible"  title="Log in and more options" >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-user-links-dropdown" class="vector-dropdown-checkbox "  aria-label="Personal tools"   >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-userAvatar mw-ui-icon-wikimedia-userAvatar cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Personal tools</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+		
+<div id="p-personal" class="vector-menu mw-portlet mw-portlet-personal"  title="User menu" >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="pt-sitesupport" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en" data-mw-donate-attempt="top_link" class=""><span class="vector-icon mw-ui-icon-heart mw-ui-icon-wikimedia-heart cdx-button__icon"></span>
+
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Levenshtein+distance" title="You are encouraged to create an account and log in; however, it is not mandatory" class=""><span class="vector-icon mw-ui-icon-userAvatar mw-ui-icon-wikimedia-userAvatar cdx-button__icon"></span>
+
+<span>Create account</span></a>
+</li>
+<li id="pt-login" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Levenshtein+distance" title="You&#039;re encouraged to log in; however, it&#039;s not mandatory. [o]" accesskey="o" class=""><span class="vector-icon mw-ui-icon-logIn mw-ui-icon-wikimedia-logIn cdx-button__icon"></span>
+
+<span>Log in</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+	
+	</div>
+</div>
+
+</nav>
+
+		</div>
+	</header>
+</div>
+<div class="mw-page-container">
+	<div class="mw-page-container-inner">
+		<div class="vector-sitenotice-container">
+			<div id="siteNotice"><!-- CentralNotice --></div>
+		</div>
+		<div class="vector-column-start">
+			<div class="vector-main-menu-container">
+		<div id="mw-navigation">
+			<nav id="mw-panel" class="vector-main-menu-landmark" aria-label="Site">
+				<div id="vector-main-menu-pinned-container" class="vector-pinned-container">
+				
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div class="vector-sticky-pinned-container">
+				<nav id="mw-panel-toc" aria-label="Contents" data-event-name="ui.sidebar-toc" class="mw-table-of-contents-container vector-toc-landmark">
+					<div id="vector-toc-pinned-container" class="vector-pinned-container">
+					<div id="vector-toc" class="vector-toc vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-toc-pinnable-header vector-pinnable-header-pinned"
+	data-feature-name="toc-pinned"
+	data-pinnable-element-id="vector-toc"
+	data-pinned-container-id="vector-toc-pinned-container"
+	data-unpinned-container-id="vector-toc-unpinned-container"
+>
+	<h2 class="vector-pinnable-header-label">Contents</h2>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-toc.pin" aria-label="Move Contents to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-toc.unpin" aria-label="Hide Contents">hide</button>
+</div>
+
+
+	<ul class="vector-toc-contents" id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+			class="vector-toc-list-item vector-toc-level-1">
+			<a href="#" class="vector-toc-link">
+				<div class="vector-toc-text">(Top)</div>
+			</a>
+		</li>
+		<li id="toc-Definition"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Definition">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">1</span>
+				<span>Definition</span>
+			</div>
+		</a>
+		
+			<button aria-controls="toc-Definition-sublist" class="cdx-button cdx-button--weight-quiet cdx-button--icon-only vector-toc-toggle">
+				<span class="vector-icon mw-ui-icon-wikimedia-expand"></span>
+				<span>Toggle Definition subsection</span>
+			</button>
+		
+		<ul id="toc-Definition-sublist" class="vector-toc-list">
+			<li id="toc-Example"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Example">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">1.1</span>
+					<span>Example</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Example-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Properties_and_bounds"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Properties_and_bounds">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">2</span>
+				<span>Properties and bounds</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Properties_and_bounds-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-Applications"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Applications">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">3</span>
+				<span>Applications</span>
+			</div>
+		</a>
+		
+			<button aria-controls="toc-Applications-sublist" class="cdx-button cdx-button--weight-quiet cdx-button--icon-only vector-toc-toggle">
+				<span class="vector-icon mw-ui-icon-wikimedia-expand"></span>
+				<span>Toggle Applications subsection</span>
+			</button>
+		
+		<ul id="toc-Applications-sublist" class="vector-toc-list">
+			<li id="toc-Approximate_string_matching_and_spelling_correction"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Approximate_string_matching_and_spelling_correction">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">3.1</span>
+					<span>Approximate string matching and spelling correction</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Approximate_string_matching_and_spelling_correction-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Record_linkage"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Record_linkage">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">3.2</span>
+					<span>Record linkage</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Record_linkage-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Linguistics_and_speech"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Linguistics_and_speech">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">3.3</span>
+					<span>Linguistics and speech</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Linguistics_and_speech-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Bioinformatics"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Bioinformatics">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">3.4</span>
+					<span>Bioinformatics</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Bioinformatics-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Relationship_to_other_string_distances"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Relationship_to_other_string_distances">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">4</span>
+				<span>Relationship to other string distances</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Relationship_to_other_string_distances-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-Computation"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Computation">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">5</span>
+				<span>Computation</span>
+			</div>
+		</a>
+		
+			<button aria-controls="toc-Computation-sublist" class="cdx-button cdx-button--weight-quiet cdx-button--icon-only vector-toc-toggle">
+				<span class="vector-icon mw-ui-icon-wikimedia-expand"></span>
+				<span>Toggle Computation subsection</span>
+			</button>
+		
+		<ul id="toc-Computation-sublist" class="vector-toc-list">
+			<li id="toc-Dynamic_programming"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Dynamic_programming">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.1</span>
+					<span>Dynamic programming</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Dynamic_programming-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Memory_reduction_and_edit-script_reconstruction"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Memory_reduction_and_edit-script_reconstruction">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.2</span>
+					<span>Memory reduction and edit-script reconstruction</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Memory_reduction_and_edit-script_reconstruction-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Distance-sensitive_and_threshold_algorithms"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Distance-sensitive_and_threshold_algorithms">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.3</span>
+					<span>Distance-sensitive and threshold algorithms</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Distance-sensitive_and_threshold_algorithms-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Bit-parallel_computation"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Bit-parallel_computation">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.4</span>
+					<span>Bit-parallel computation</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Bit-parallel_computation-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Automata"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Automata">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.5</span>
+					<span>Automata</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Automata-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Approximation"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Approximation">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.6</span>
+					<span>Approximation</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Approximation-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+		<li id="toc-Computational_complexity"
+			class="vector-toc-list-item vector-toc-level-2">
+			<a class="vector-toc-link" href="#Computational_complexity">
+				<div class="vector-toc-text">
+					<span class="vector-toc-numb">5.7</span>
+					<span>Computational complexity</span>
+				</div>
+			</a>
+			
+			<ul id="toc-Computational_complexity-sublist" class="vector-toc-list">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Unicode_and_the_unit_of_comparison"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#Unicode_and_the_unit_of_comparison">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">6</span>
+				<span>Unicode and the unit of comparison</span>
+			</div>
+		</a>
+		
+		<ul id="toc-Unicode_and_the_unit_of_comparison-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-History"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#History">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">7</span>
+				<span>History</span>
+			</div>
+		</a>
+		
+		<ul id="toc-History-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-See_also"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#See_also">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">8</span>
+				<span>See also</span>
+			</div>
+		</a>
+		
+		<ul id="toc-See_also-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-References"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#References">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">9</span>
+				<span>References</span>
+			</div>
+		</a>
+		
+		<ul id="toc-References-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+	<li id="toc-External_links"
+		class="vector-toc-list-item vector-toc-level-1 vector-toc-list-item-expanded">
+		<a class="vector-toc-link" href="#External_links">
+			<div class="vector-toc-text">
+				<span class="vector-toc-numb">10</span>
+				<span>External links</span>
+			</div>
+		</a>
+		
+		<ul id="toc-External_links-sublist" class="vector-toc-list">
+		</ul>
+	</li>
+</ul>
+</div>
+
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div class="mw-content-container">
+			<main id="content" class="mw-body">
+				<header class="mw-body-header vector-page-titlebar no-font-mode-scale">
+					<nav aria-label="Contents" class="vector-toc-landmark">
+						
+<div id="vector-page-titlebar-toc" class="vector-dropdown vector-page-titlebar-toc vector-button-flush-left"  title="Table of Contents" >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-page-titlebar-toc" class="vector-dropdown-checkbox "  aria-label="Toggle the table of contents"   >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-listBullet mw-ui-icon-wikimedia-listBullet cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Toggle the table of contents</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+							<div id="vector-page-titlebar-toc-unpinned-container" class="vector-unpinned-container">
+			</div>
+		
+	</div>
+</div>
+
+					</nav>
+					<h1 id="firstHeading" class="firstHeading mw-first-heading"><span lang="en" dir="ltr"><span class="mw-page-title-main">Levenshtein distance</span></span></h1>
+			
+<div id="p-lang-btn" class="vector-dropdown mw-portlet mw-portlet-lang"  >
+	<input type="checkbox" id="p-lang-btn-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-p-lang-btn" class="vector-dropdown-checkbox mw-interlanguage-selector"  aria-label="40 languages" aria-description="Go to an article in another language. Available in 40 languages"  >
+	<label id="p-lang-btn-label" for="p-lang-btn-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--action-progressive mw-portlet-lang-heading-40" aria-hidden="true"  ><span class="vector-icon mw-ui-icon-language-progressive mw-ui-icon-wikimedia-language-progressive cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">40 languages</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+		<div class="vector-menu-content">
+			
+			<ul class="vector-menu-content-list">
+				
+				<li class="interlanguage-link interwiki-af mw-list-item"><a href="https://af.wikipedia.org/wiki/Levenshteinafstand" title="Levenshteinafstand – Afrikaans" lang="af" hreflang="af" data-title="Levenshteinafstand" data-language-autonym="Afrikaans" data-language-local-name="Afrikaans" class="interlanguage-link-target"><span>Afrikaans</span></a></li><li class="interlanguage-link interwiki-ast mw-list-item"><a href="https://ast.wikipedia.org/wiki/Distancia_de_Levenshtein" title="Distancia de Levenshtein – Asturian" lang="ast" hreflang="ast" data-title="Distancia de Levenshtein" data-language-autonym="Asturianu" data-language-local-name="Asturian" class="interlanguage-link-target"><span>Asturianu</span></a></li><li class="interlanguage-link interwiki-az mw-list-item"><a href="https://az.wikipedia.org/wiki/Leven%C5%9Fteyn_m%C9%99saf%C9%99si" title="Levenşteyn məsafəsi – Azerbaijani" lang="az" hreflang="az" data-title="Levenşteyn məsafəsi" data-language-autonym="Azərbaycanca" data-language-local-name="Azerbaijani" class="interlanguage-link-target"><span>Azərbaycanca</span></a></li><li class="interlanguage-link interwiki-ca mw-list-item"><a href="https://ca.wikipedia.org/wiki/Dist%C3%A0ncia_de_Levenshtein" title="Distància de Levenshtein – Catalan" lang="ca" hreflang="ca" data-title="Distància de Levenshtein" data-language-autonym="Català" data-language-local-name="Catalan" class="interlanguage-link-target"><span>Català</span></a></li><li class="interlanguage-link interwiki-ckb mw-list-item"><a href="https://ckb.wikipedia.org/wiki/%D8%AC%DB%8C%D8%A7%D9%88%D8%A7%D8%B2%DB%8C%DB%8C_%D9%84%DB%8E%DA%A4%D9%86%D8%B4%D8%AA%D8%A7%DB%8C%D9%86" title="جیاوازیی لێڤنشتاین – Central Kurdish" lang="ckb" hreflang="ckb" data-title="جیاوازیی لێڤنشتاین" data-language-autonym="کوردی" data-language-local-name="Central Kurdish" class="interlanguage-link-target"><span>کوردی</span></a></li><li class="interlanguage-link interwiki-cs mw-list-item"><a href="https://cs.wikipedia.org/wiki/Leven%C5%A1tejnova_vzd%C3%A1lenost" title="Levenštejnova vzdálenost – Czech" lang="cs" hreflang="cs" data-title="Levenštejnova vzdálenost" data-language-autonym="Čeština" data-language-local-name="Czech" class="interlanguage-link-target"><span>Čeština</span></a></li><li class="interlanguage-link interwiki-de mw-list-item"><a href="https://de.wikipedia.org/wiki/Levenshtein-Distanz" title="Levenshtein-Distanz – German" lang="de" hreflang="de" data-title="Levenshtein-Distanz" data-language-autonym="Deutsch" data-language-local-name="German" class="interlanguage-link-target"><span>Deutsch</span></a></li><li class="interlanguage-link interwiki-es mw-list-item"><a href="https://es.wikipedia.org/wiki/Distancia_de_Levenshtein" title="Distancia de Levenshtein – Spanish" lang="es" hreflang="es" data-title="Distancia de Levenshtein" data-language-autonym="Español" data-language-local-name="Spanish" class="interlanguage-link-target"><span>Español</span></a></li><li class="interlanguage-link interwiki-et mw-list-item"><a href="https://et.wikipedia.org/wiki/Levenshteini_kaugus" title="Levenshteini kaugus – Estonian" lang="et" hreflang="et" data-title="Levenshteini kaugus" data-language-autonym="Eesti" data-language-local-name="Estonian" class="interlanguage-link-target"><span>Eesti</span></a></li><li class="interlanguage-link interwiki-eu mw-list-item"><a href="https://eu.wikipedia.org/wiki/Levenshtein_distantzia" title="Levenshtein distantzia – Basque" lang="eu" hreflang="eu" data-title="Levenshtein distantzia" data-language-autonym="Euskara" data-language-local-name="Basque" class="interlanguage-link-target"><span>Euskara</span></a></li><li class="interlanguage-link interwiki-fa mw-list-item"><a href="https://fa.wikipedia.org/wiki/%D9%81%D8%A7%D8%B5%D9%84%D9%87_%D9%84%D9%88%D9%86%E2%80%8C%D8%A7%D8%B4%D8%AA%D8%A7%DB%8C%D9%86" title="فاصله لون‌اشتاین – Persian" lang="fa" hreflang="fa" data-title="فاصله لون‌اشتاین" data-language-autonym="فارسی" data-language-local-name="Persian" class="interlanguage-link-target"><span>فارسی</span></a></li><li class="interlanguage-link interwiki-fi mw-list-item"><a href="https://fi.wikipedia.org/wiki/Leven%C5%A1teinin_et%C3%A4isyys" title="Levenšteinin etäisyys – Finnish" lang="fi" hreflang="fi" data-title="Levenšteinin etäisyys" data-language-autonym="Suomi" data-language-local-name="Finnish" class="interlanguage-link-target"><span>Suomi</span></a></li><li class="interlanguage-link interwiki-fr mw-list-item"><a href="https://fr.wikipedia.org/wiki/Distance_de_Levenshtein" title="Distance de Levenshtein – French" lang="fr" hreflang="fr" data-title="Distance de Levenshtein" data-language-autonym="Français" data-language-local-name="French" class="interlanguage-link-target"><span>Français</span></a></li><li class="interlanguage-link interwiki-he mw-list-item"><a href="https://he.wikipedia.org/wiki/%D7%9E%D7%A8%D7%97%D7%A7_%D7%9C%D7%95%D7%99%D7%A0%D7%A9%D7%98%D7%99%D7%99%D7%9F" title="מרחק לוינשטיין – Hebrew" lang="he" hreflang="he" data-title="מרחק לוינשטיין" data-language-autonym="עברית" data-language-local-name="Hebrew" class="interlanguage-link-target"><span>עברית</span></a></li><li class="interlanguage-link interwiki-hu mw-list-item"><a href="https://hu.wikipedia.org/wiki/Levenshtein-t%C3%A1vols%C3%A1g" title="Levenshtein-távolság – Hungarian" lang="hu" hreflang="hu" data-title="Levenshtein-távolság" data-language-autonym="Magyar" data-language-local-name="Hungarian" class="interlanguage-link-target"><span>Magyar</span></a></li><li class="interlanguage-link interwiki-id mw-list-item"><a href="https://id.wikipedia.org/wiki/Jarak_Levenshtein" title="Jarak Levenshtein – Indonesian" lang="id" hreflang="id" data-title="Jarak Levenshtein" data-language-autonym="Bahasa Indonesia" data-language-local-name="Indonesian" class="interlanguage-link-target"><span>Bahasa Indonesia</span></a></li><li class="interlanguage-link interwiki-it mw-list-item"><a href="https://it.wikipedia.org/wiki/Distanza_di_Levenshtein" title="Distanza di Levenshtein – Italian" lang="it" hreflang="it" data-title="Distanza di Levenshtein" data-language-autonym="Italiano" data-language-local-name="Italian" class="interlanguage-link-target"><span>Italiano</span></a></li><li class="interlanguage-link interwiki-ja mw-list-item"><a href="https://ja.wikipedia.org/wiki/%E3%83%AC%E3%83%BC%E3%83%99%E3%83%B3%E3%82%B7%E3%83%A5%E3%82%BF%E3%82%A4%E3%83%B3%E8%B7%9D%E9%9B%A2" title="レーベンシュタイン距離 – Japanese" lang="ja" hreflang="ja" data-title="レーベンシュタイン距離" data-language-autonym="日本語" data-language-local-name="Japanese" class="interlanguage-link-target"><span>日本語</span></a></li><li class="interlanguage-link interwiki-ka mw-list-item"><a href="https://ka.wikipedia.org/wiki/%E1%83%9A%E1%83%94%E1%83%95%E1%83%94%E1%83%9C%E1%83%A8%E1%83%A2%E1%83%94%E1%83%98%E1%83%9C%E1%83%98%E1%83%A1_%E1%83%9B%E1%83%90%E1%83%9C%E1%83%AB%E1%83%98%E1%83%9A%E1%83%98" title="ლევენშტეინის მანძილი – Georgian" lang="ka" hreflang="ka" data-title="ლევენშტეინის მანძილი" data-language-autonym="ქართული" data-language-local-name="Georgian" class="interlanguage-link-target"><span>ქართული</span></a></li><li class="interlanguage-link interwiki-ko mw-list-item"><a href="https://ko.wikipedia.org/wiki/%EB%A0%88%EB%B2%A4%EC%8A%88%ED%83%80%EC%9D%B8_%EA%B1%B0%EB%A6%AC" title="레벤슈타인 거리 – Korean" lang="ko" hreflang="ko" data-title="레벤슈타인 거리" data-language-autonym="한국어" data-language-local-name="Korean" class="interlanguage-link-target"><span>한국어</span></a></li><li class="interlanguage-link interwiki-lmo mw-list-item"><a href="https://lmo.wikipedia.org/wiki/Distanza_de_Levenshtein" title="Distanza de Levenshtein – Lombard" lang="lmo" hreflang="lmo" data-title="Distanza de Levenshtein" data-language-autonym="Lombard" data-language-local-name="Lombard" class="interlanguage-link-target"><span>Lombard</span></a></li><li class="interlanguage-link interwiki-lt mw-list-item"><a href="https://lt.wikipedia.org/wiki/Leven%C5%A1teino_atstumas" title="Levenšteino atstumas – Lithuanian" lang="lt" hreflang="lt" data-title="Levenšteino atstumas" data-language-autonym="Lietuvių" data-language-local-name="Lithuanian" class="interlanguage-link-target"><span>Lietuvių</span></a></li><li class="interlanguage-link interwiki-lv mw-list-item"><a href="https://lv.wikipedia.org/wiki/Leven%C5%A1teina_att%C4%81lums" title="Levenšteina attālums – Latvian" lang="lv" hreflang="lv" data-title="Levenšteina attālums" data-language-autonym="Latviešu" data-language-local-name="Latvian" class="interlanguage-link-target"><span>Latviešu</span></a></li><li class="interlanguage-link interwiki-nds mw-list-item"><a href="https://nds.wikipedia.org/wiki/Levenshtein-Afstand" title="Levenshtein-Afstand – Low German" lang="nds" hreflang="nds" data-title="Levenshtein-Afstand" data-language-autonym="Plattdüütsch" data-language-local-name="Low German" class="interlanguage-link-target"><span>Plattdüütsch</span></a></li><li class="interlanguage-link interwiki-nl mw-list-item"><a href="https://nl.wikipedia.org/wiki/Levenshteinafstand" title="Levenshteinafstand – Dutch" lang="nl" hreflang="nl" data-title="Levenshteinafstand" data-language-autonym="Nederlands" data-language-local-name="Dutch" class="interlanguage-link-target"><span>Nederlands</span></a></li><li class="interlanguage-link interwiki-nn mw-list-item"><a href="https://nn.wikipedia.org/wiki/Levenshtein-distanse" title="Levenshtein-distanse – Norwegian Nynorsk" lang="nn" hreflang="nn" data-title="Levenshtein-distanse" data-language-autonym="Norsk nynorsk" data-language-local-name="Norwegian Nynorsk" class="interlanguage-link-target"><span>Norsk nynorsk</span></a></li><li class="interlanguage-link interwiki-no mw-list-item"><a href="https://no.wikipedia.org/wiki/Levenshtein-distanse" title="Levenshtein-distanse – Norwegian Bokmål" lang="nb" hreflang="nb" data-title="Levenshtein-distanse" data-language-autonym="Norsk bokmål" data-language-local-name="Norwegian Bokmål" class="interlanguage-link-target"><span>Norsk bokmål</span></a></li><li class="interlanguage-link interwiki-pl mw-list-item"><a href="https://pl.wikipedia.org/wiki/Odleg%C5%82o%C5%9B%C4%87_Levenshteina" title="Odległość Levenshteina – Polish" lang="pl" hreflang="pl" data-title="Odległość Levenshteina" data-language-autonym="Polski" data-language-local-name="Polish" class="interlanguage-link-target"><span>Polski</span></a></li><li class="interlanguage-link interwiki-pt mw-list-item"><a href="https://pt.wikipedia.org/wiki/Dist%C3%A2ncia_Levenshtein" title="Distância Levenshtein – Portuguese" lang="pt" hreflang="pt" data-title="Distância Levenshtein" data-language-autonym="Português" data-language-local-name="Portuguese" class="interlanguage-link-target"><span>Português</span></a></li><li class="interlanguage-link interwiki-ru mw-list-item"><a href="https://ru.wikipedia.org/wiki/%D0%A0%D0%B0%D1%81%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5_%D0%9B%D0%B5%D0%B2%D0%B5%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD%D0%B0" title="Расстояние Левенштейна – Russian" lang="ru" hreflang="ru" data-title="Расстояние Левенштейна" data-language-autonym="Русский" data-language-local-name="Russian" class="interlanguage-link-target"><span>Русский</span></a></li><li class="interlanguage-link interwiki-simple mw-list-item"><a href="https://simple.wikipedia.org/wiki/Levenshtein_distance" title="Levenshtein distance – Simple English" lang="en-simple" hreflang="en-simple" data-title="Levenshtein distance" data-language-autonym="Simple English" data-language-local-name="Simple English" class="interlanguage-link-target"><span>Simple English</span></a></li><li class="interlanguage-link interwiki-sl mw-list-item"><a href="https://sl.wikipedia.org/wiki/Leven%C5%A1tejnova_razdalja" title="Levenštejnova razdalja – Slovenian" lang="sl" hreflang="sl" data-title="Levenštejnova razdalja" data-language-autonym="Slovenščina" data-language-local-name="Slovenian" class="interlanguage-link-target"><span>Slovenščina</span></a></li><li class="interlanguage-link interwiki-sr mw-list-item"><a href="https://sr.wikipedia.org/wiki/%D0%9B%D0%B5%D0%B2%D0%B5%D0%BD%D1%88%D1%82%D0%B0%D1%98%D0%BD%D0%BE%D0%B2%D0%BE_%D1%80%D0%B0%D1%81%D1%82%D0%BE%D1%98%D0%B0%D1%9A%D0%B5" title="Левенштајново растојање – Serbian" lang="sr" hreflang="sr" data-title="Левенштајново растојање" data-language-autonym="Српски / srpski" data-language-local-name="Serbian" class="interlanguage-link-target"><span>Српски / srpski</span></a></li><li class="interlanguage-link interwiki-sv mw-list-item"><a href="https://sv.wikipedia.org/wiki/Levenshteinavst%C3%A5nd" title="Levenshteinavstånd – Swedish" lang="sv" hreflang="sv" data-title="Levenshteinavstånd" data-language-autonym="Svenska" data-language-local-name="Swedish" class="interlanguage-link-target"><span>Svenska</span></a></li><li class="interlanguage-link interwiki-szl mw-list-item"><a href="https://szl.wikipedia.org/wiki/Dystans_Levenshteina" title="Dystans Levenshteina – Silesian" lang="szl" hreflang="szl" data-title="Dystans Levenshteina" data-language-autonym="Ślůnski" data-language-local-name="Silesian" class="interlanguage-link-target"><span>Ślůnski</span></a></li><li class="interlanguage-link interwiki-tg mw-list-item"><a href="https://tg.wikipedia.org/wiki/%D0%9C%D0%B0%D1%81%D0%BE%D1%84%D0%B0%D0%B8_%D0%9B%D0%B5%D0%B2%D0%B5%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD" title="Масофаи Левенштейн – Tajik" lang="tg" hreflang="tg" data-title="Масофаи Левенштейн" data-language-autonym="Тоҷикӣ" data-language-local-name="Tajik" class="interlanguage-link-target"><span>Тоҷикӣ</span></a></li><li class="interlanguage-link interwiki-th mw-list-item"><a href="https://th.wikipedia.org/wiki/%E0%B8%A3%E0%B8%B0%E0%B8%A2%E0%B8%B0%E0%B8%97%E0%B8%B2%E0%B8%87%E0%B9%80%E0%B8%A5%E0%B9%80%E0%B8%A7%E0%B8%99%E0%B8%8A%E0%B9%80%E0%B8%95%E0%B8%A2%E0%B9%8C%E0%B8%99" title="ระยะทางเลเวนชเตย์น – Thai" lang="th" hreflang="th" data-title="ระยะทางเลเวนชเตย์น" data-language-autonym="ไทย" data-language-local-name="Thai" class="interlanguage-link-target"><span>ไทย</span></a></li><li class="interlanguage-link interwiki-uk mw-list-item"><a href="https://uk.wikipedia.org/wiki/%D0%92%D1%96%D0%B4%D1%81%D1%82%D0%B0%D0%BD%D1%8C_%D0%9B%D0%B5%D0%B2%D0%B5%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD%D0%B0" title="Відстань Левенштейна – Ukrainian" lang="uk" hreflang="uk" data-title="Відстань Левенштейна" data-language-autonym="Українська" data-language-local-name="Ukrainian" class="interlanguage-link-target"><span>Українська</span></a></li><li class="interlanguage-link interwiki-vi mw-list-item"><a href="https://vi.wikipedia.org/wiki/Kho%E1%BA%A3ng_c%C3%A1ch_Levenshtein" title="Khoảng cách Levenshtein – Vietnamese" lang="vi" hreflang="vi" data-title="Khoảng cách Levenshtein" data-language-autonym="Tiếng Việt" data-language-local-name="Vietnamese" class="interlanguage-link-target"><span>Tiếng Việt</span></a></li><li class="interlanguage-link interwiki-zh mw-list-item"><a href="https://zh.wikipedia.org/wiki/%E8%90%8A%E6%96%87%E6%96%AF%E5%9D%A6%E8%B7%9D%E9%9B%A2" title="萊文斯坦距離 – Chinese" lang="zh" hreflang="zh" data-title="萊文斯坦距離" data-language-autonym="中文" data-language-local-name="Chinese" class="interlanguage-link-target"><span>中文</span></a></li>
+			</ul>
+			<div class="after-portlet after-portlet-lang"><span class="wb-langlinks-edit wb-langlinks-link"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q496939#sitelinks-wikipedia" title="Edit interlanguage links" class="wbc-editpage">Edit links</a></span></div>
+		</div>
+
+	</div>
+</div>
+</header>
+				<div class="vector-page-toolbar">
+					<div class="vector-page-toolbar-container">
+						<div id="left-navigation">
+							<nav aria-label="Namespaces">
+								
+<div id="p-associated-pages" class="vector-menu vector-menu-tabs mw-portlet mw-portlet-associated-pages"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-nstab-main" class="selected mw-list-item vector-tab-noicon"><a data-mw-interface  href="/wiki/Levenshtein_distance" title="View the content page [c]" accesskey="c" class=""><span>Article</span></a>
+</li>
+<li id="ca-talk" class="mw-list-item vector-tab-noicon"><a data-mw-interface  href="/wiki/Talk:Levenshtein_distance" rel="discussion" title="Discuss improvements to the content page [t]" accesskey="t" class=""><span>Talk</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+								
+<div id="vector-variants-dropdown" class="vector-dropdown emptyPortlet"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-variants-dropdown" class="vector-dropdown-checkbox " aria-label="Change language variant"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet" aria-hidden="true"  ><span class="vector-dropdown-label-text">English</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+					
+<div id="p-variants" class="vector-menu mw-portlet mw-portlet-variants emptyPortlet"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			
+		</ul>
+		
+	</div>
+</div>
+
+				
+	</div>
+</div>
+
+							</nav>
+						</div>
+						<div id="right-navigation" class="vector-collapsible">
+							<nav aria-label="Views">
+			    
+<div id="p-views" class="vector-menu vector-menu-tabs mw-portlet mw-portlet-views"  >
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-view" class="selected mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/wiki/Levenshtein_distance" class=""><span>Read</span></a>
+</li>
+<li id="ca-edit" class="mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/w/index.php?title=Levenshtein_distance&amp;action=edit" title="Edit this page [e]" accesskey="e" class=""><span>Edit</span></a>
+</li>
+<li id="ca-history" class="mw-list-item vector-menu-item--collapsible vector-tab-noicon"><a data-mw-interface  href="/w/index.php?title=Levenshtein_distance&amp;action=history" title="Past revisions of this page [h]" accesskey="h" class=""><span>View history</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+			</nav>
+
+							<nav class="vector-page-tools-landmark" aria-label="Page tools">
+								
+<div id="vector-page-tools-dropdown" class="vector-dropdown vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-page-tools-dropdown" class="vector-dropdown-checkbox "  aria-label="Tools"   >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-verticalEllipsis mw-ui-icon-wikimedia-verticalEllipsis cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Tools</span>
+	</label>
+	<div class="vector-dropdown-content">
+
+
+									<div id="vector-page-tools-unpinned-container" class="vector-unpinned-container">
+						
+<div id="vector-page-tools" class="vector-page-tools vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-page-tools-pinnable-header vector-pinnable-header-unpinned"
+	data-feature-name="page-tools-pinned"
+	data-pinnable-element-id="vector-page-tools"
+	data-pinned-container-id="vector-page-tools-pinned-container"
+	data-unpinned-container-id="vector-page-tools-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Tools</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-page-tools.pin" aria-label="Move Tools to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-page-tools.unpin" aria-label="Hide Tools">hide</button>
+</div>
+
+	
+<div id="p-cactions" class="vector-menu mw-portlet mw-portlet-cactions emptyPortlet vector-has-collapsible-items"  >
+	<div class="vector-menu-heading">
+		Actions
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			<li id="ca-view-more" class="selected mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/wiki/Levenshtein_distance" class=""><span class="vector-icon mw-ui-icon-eye mw-ui-icon-wikimedia-eye cdx-button__icon"></span>
+
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Levenshtein_distance&amp;action=edit" title="Edit this page [e]" accesskey="e" class=""><span class="vector-icon mw-ui-icon-edit mw-ui-icon-wikimedia-edit cdx-button__icon"></span>
+
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more" class="mw-list-item vector-menu-item--collapsible"><a data-mw-interface  href="/w/index.php?title=Levenshtein_distance&amp;action=history" title="Past revisions of this page [h]" accesskey="h" class=""><span class="vector-icon mw-ui-icon-history mw-ui-icon-wikimedia-history cdx-button__icon"></span>
+
+<span>View history</span></a>
+</li>
+
+			
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-tb" class="vector-menu mw-portlet mw-portlet-tb"  >
+	<div class="vector-menu-heading">
+		General
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="t-whatlinkshere" class="mw-list-item"><a href="/wiki/Special:WhatLinksHere/Levenshtein_distance" title="List of all English Wikipedia pages containing links to this page [j]" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked" class="mw-list-item"><a href="/wiki/Special:RecentChangesLinked/Levenshtein_distance" rel="nofollow" title="Recent changes in pages linked from this page [k]" accesskey="k"><span>Related changes</span></a></li><li id="t-upload" class="mw-list-item"><a href="//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" title="Upload files [u]" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink" class="mw-list-item"><a href="/w/index.php?title=Levenshtein_distance&amp;oldid=1375547008" title="Permanent link to this revision of this page"><span>Permanent link</span></a></li><li id="t-info" class="mw-list-item"><a href="/w/index.php?title=Levenshtein_distance&amp;action=info" title="More information about this page"><span>Page information</span></a></li><li id="t-cite" class="mw-list-item"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Levenshtein_distance&amp;id=1375547008&amp;wpFormIdentifier=titleform" title="Information on how to cite this page"><span>Cite this page</span></a></li><li id="t-urlshortener" class="mw-list-item"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FLevenshtein_distance"><span>Get shortened URL</span></a></li><li id="parsermigration-switch-to-legacy" class="mw-list-item"><a href="/w/index.php?title=Levenshtein_distance&amp;useparsoid=0"><span>Switch to legacy parser</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-coll-print_export" class="vector-menu mw-portlet mw-portlet-coll-print_export"  >
+	<div class="vector-menu-heading">
+		Print/export
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li id="coll-download-as-rl" class="mw-list-item"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Levenshtein_distance&amp;action=show-download-screen" title="Download this page as a PDF file"><span>Download as PDF</span></a></li><li id="t-print" class="mw-list-item"><a href="/w/index.php?title=Levenshtein_distance&amp;printable=yes" title="Printable version of this page [p]" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+<div id="p-wikibase-otherprojects" class="vector-menu mw-portlet mw-portlet-wikibase-otherprojects"  >
+	<div class="vector-menu-heading">
+		In other projects
+	</div>
+	<div class="vector-menu-content">
+		
+		<ul class="vector-menu-content-list">
+			
+			<li class="wb-otherproject-link wb-otherproject-wikibooks mw-list-item"><a href="https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance" hreflang="en"><span>Wikibooks</span></a></li><li class="wb-otherproject-link wb-otherproject-wikifunctions mw-list-item"><a href="https://www.wikifunctions.org/wiki/Z31013" hreflang="en"><span>Wikifunctions</span></a></li><li id="t-wikibase" class="wb-otherproject-link wb-otherproject-wikibase-dataitem mw-list-item"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q496939" title="Structured data on this page hosted by Wikidata [g]" accesskey="g"><span>Wikidata item</span></a></li>
+		</ul>
+		
+	</div>
+</div>
+
+</div>
+
+									</div>
+				
+	</div>
+</div>
+
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div class="vector-column-end no-font-mode-scale">
+					<div class="vector-sticky-pinned-container">
+						<nav class="vector-page-tools-landmark" aria-label="Page tools">
+							<div id="vector-page-tools-pinned-container" class="vector-pinned-container">
+				
+							</div>
+		</nav>
+						<nav class="vector-appearance-landmark" aria-label="Appearance">
+							<div id="vector-appearance-pinned-container" class="vector-pinned-container">
+				<div id="vector-appearance" class="vector-appearance vector-pinnable-element">
+	<div
+	class="vector-pinnable-header vector-appearance-pinnable-header vector-pinnable-header-pinned"
+	data-feature-name="appearance-pinned"
+	data-pinnable-element-id="vector-appearance"
+	data-pinned-container-id="vector-appearance-pinned-container"
+	data-unpinned-container-id="vector-appearance-unpinned-container"
+>
+	<div class="vector-pinnable-header-label">Appearance</div>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-pin-button" data-event-name="pinnable-header.vector-appearance.pin" aria-label="Move Appearance to sidebar">move to sidebar</button>
+	<button class="vector-pinnable-header-toggle-button vector-pinnable-header-unpin-button" data-event-name="pinnable-header.vector-appearance.unpin" aria-label="Hide Appearance">hide</button>
+</div>
+
+
+</div>
+
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" class="vector-body" aria-labelledby="firstHeading" data-mw-ve-target-container>
+					<div class="vector-body-before-content">
+							<div class="mw-indicators">
+		</div>
+
+						<div id="siteSub" class="noprint">From Wikipedia, the free encyclopedia</div>
+						<div id="contentSub"><div id="mw-content-subtitle"></div></div>
+						
+					</div>
+					
+					<div id="mw-content-text" class="mw-body-content"><div class="mw-content-ltr mw-parser-output" lang="en" dir="ltr" data-mw-parsoid-version="0.24.0.0-alpha24" data-mw-html-version="2.8.0"><section data-mw-section-id="0" id="mwAQ"><div class="shortdescription nomobile noexcerpt noprint searchaux" style="display:none" about="#mwt1" typeof="mw:Transclusion" id="mwAg" data-mw='{"parts":[{"template":{"target":{"wt":"Short description","href":"./Template:Short_description"},"params":{"1":{"wt":"String metric for measuring edit distance"}},"i":0}}]}'>String metric for measuring edit distance</div><span class="mw-empty-elt" about="#mwt1"><link rel="mw:PageProp/Category" href="./Category:Articles_with_short_description"/><link rel="mw:PageProp/Category" href="./Category:Short_description_is_different_from_Wikidata"/></span>
+<p class="mw-empty-elt" id="mwAw"><span typeof="mw:Nowiki mw:Transclusion" about="#mwt2" id="mwBA" data-mw='{"parts":[{"template":{"target":{"wt":"Use dmy dates","href":"./Template:Use_dmy_dates"},"params":{"date":{"wt":"April 2017"}},"i":0}}]}'></span><link rel="mw:PageProp/Category" href="./Category:Use_dmy_dates_from_April_2017" about="#mwt2" id="mwBQ"/></p>
+
+<figure class="mw-default-size" typeof="mw:File/Thumb" id="mwBg"><a href="https://en.wikipedia.org/wiki/File:Levenshtein_distance_animation.gif" class="mw-file-description" id="mwBw"><img resource="https://en.wikipedia.org/wiki/File:Levenshtein_distance_animation.gif" src="//thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/Levenshtein_distance_animation.gif/250px-Levenshtein_distance_animation.gif?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" decoding="async" loading="lazy" srcset="//thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/Levenshtein_distance_animation.gif/500px-Levenshtein_distance_animation.gif?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail 2x" data-file-width="1319" data-file-height="860" data-file-type="bitmap" height="163" width="250" class="mw-file-element" id="mwCA"/></a><figcaption id="mwCQ">Edit-distance matrix for two words using substitution cost 1 and insertion/deletion cost 0.5. Because the costs are not all 1, this illustrates a weighted edit distance rather than the classical unit-cost Levenshtein distance.</figcaption></figure>
+
+<p id="mwCg">In <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Information_theory" title="Information theory" id="mwCw">information theory</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Linguistics" title="Linguistics" id="mwDA">linguistics</a>, and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Computer_science" title="Computer science" id="mwDQ">computer science</a>, the <b id="mwDg">Levenshtein distance</b> is a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_metric" title="String metric" id="mwDw">string metric</a> for measuring the difference between two sequences. For two strings, it is the minimum number of single-symbol edits—insertions, deletions, or substitutions—required to transform one string into the other. Each edit has unit cost in the classical definition.<sup about="#mwt3" class="mw-ref reference" id="cite_ref-Levenshtein1965_1-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Levenshtein1965"},"body":{"id":"mw-reference-text-cite_note-Levenshtein1965-1"}}'><a href="#cite_note-Levenshtein1965-1" id="mwEA"><span class="mw-reflink-text" id="mwEQ"><span class="cite-bracket" id="mwEg">[</span>1<span class="cite-bracket" id="mwEw">]</span></span></a></sup></p>
+
+<p id="mwFA">The distance is named after Soviet mathematician <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Vladimir_Levenshtein" title="Vladimir Levenshtein" id="mwFQ">Vladimir Levenshtein</a>, who introduced it in 1965 in the context of error-correcting codes.<sup about="#mwt4" class="mw-ref reference" id="cite_ref-Levenshtein1965_1-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Levenshtein1965"}}'><a href="#cite_note-Levenshtein1965-1" id="mwFg"><span class="mw-reflink-text" id="mwFw"><span class="cite-bracket" id="mwGA">[</span>1<span class="cite-bracket" id="mwGQ">]</span></span></a></sup> Levenshtein distance is a particular form of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Edit_distance" title="Edit distance" id="mwGg">edit distance</a>; the latter term is also used for broader models in which the set of allowed operations or their costs differ.<sup about="#mwt5" class="mw-ref reference" id="cite_ref-Navarro2001_2-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Navarro2001"},"body":{"id":"mw-reference-text-cite_note-Navarro2001-2"}}'><a href="#cite_note-Navarro2001-2" id="mwGw"><span class="mw-reflink-text" id="mwHA"><span class="cite-bracket" id="mwHQ">[</span>2<span class="cite-bracket" id="mwHg">]</span></span></a></sup> It is closely related to <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment" title="Sequence alignment" id="mwHw">sequence alignment</a>.</p>
+
+<meta property="mw:PageProp/toc" id="mwIA" data-mw='{"autoGenerated":true}'/></section><section data-mw-section-id="1" id="mwIQ" aria-labelledby="Definition"><div class="mw-heading mw-heading2"><h2 id="Definition">Definition</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=1" title="Edit section: Definition"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwIg">Let <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt6" id="mwIw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"a=a_1a_2\\dots a_m"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle a=a_{1}a_{2}\dots a_{m}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>a</mi>
+        <mo>=</mo>
+        <msub>
+          <mi>a</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <msub>
+          <mi>a</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo>…<!-- … --></mo>
+        <msub>
+          <mi>a</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>m</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle a=a_{1}a_{2}\dots a_{m}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c1bc7c3f6928fa5d4f7d1c79425a99dca827f267" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.671ex; width:15.299ex; height:2.009ex;" alt="{\displaystyle a=a_{1}a_{2}\dots a_{m}}"/></span> and <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt7" id="mwJA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"b=b_1b_2\\dots b_n"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle b=b_{1}b_{2}\dots b_{n}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>b</mi>
+        <mo>=</mo>
+        <msub>
+          <mi>b</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <msub>
+          <mi>b</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo>…<!-- … --></mo>
+        <msub>
+          <mi>b</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>n</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle b=b_{1}b_{2}\dots b_{n}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/db1c86477ce30bb554a081c6a6e87c067de0c186" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.671ex; width:13.913ex; height:2.509ex;" alt="{\displaystyle b=b_{1}b_{2}\dots b_{n}}"/></span> be two strings. Define <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt8" id="mwJQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"D(i,j)"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle D(i,j)}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>D</mi>
+        <mo stretchy="false">(</mo>
+        <mi>i</mi>
+        <mo>,</mo>
+        <mi>j</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle D(i,j)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/f1af62a75257d36aaec45d61e91854862805aa4a" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:6.528ex; height:2.843ex;" alt="{\displaystyle D(i,j)}"/></span> as the Levenshtein distance between the prefixes <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt9" id="mwJg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"a_1\\dots a_i"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle a_{1}\dots a_{i}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>a</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>…<!-- … --></mo>
+        <msub>
+          <mi>a</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>i</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle a_{1}\dots a_{i}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/5d67eb2cd16acf8253eca43266036df930ba27f9" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.671ex; width:7.811ex; height:2.009ex;" alt="{\displaystyle a_{1}\dots a_{i}}"/></span> and <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt10" id="mwJw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"b_1\\dots b_j"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle b_{1}\dots b_{j}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>b</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>…<!-- … --></mo>
+        <msub>
+          <mi>b</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle b_{1}\dots b_{j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3268a7e1e052652ffe2e4e1e9f8382fcfeaa2f26" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -1.005ex; width:7.456ex; height:2.843ex;" alt="{\displaystyle b_{1}\dots b_{j}}"/></span>.</p>
+
+<p id="mwKA">The boundary conditions are</p>
+
+<dl id="mwKQ"><dd id="mwKg"><span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt11" id="mwKw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"D(i,0)=i,\\qquad D(0,j)=j."}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle D(i,0)=i,\qquad D(0,j)=j.}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>D</mi>
+        <mo stretchy="false">(</mo>
+        <mi>i</mi>
+        <mo>,</mo>
+        <mn>0</mn>
+        <mo stretchy="false">)</mo>
+        <mo>=</mo>
+        <mi>i</mi>
+        <mo>,</mo>
+        <mspace width="2em"></mspace>
+        <mi>D</mi>
+        <mo stretchy="false">(</mo>
+        <mn>0</mn>
+        <mo>,</mo>
+        <mi>j</mi>
+        <mo stretchy="false">)</mo>
+        <mo>=</mo>
+        <mi>j</mi>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle D(i,0)=i,\qquad D(0,j)=j.}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a0788b9e7e1b2d1dec45b29a7c15c7427c96d213" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:27.904ex; height:2.843ex;" alt="{\displaystyle D(i,0)=i,\qquad D(0,j)=j.}"/></span></dd></dl>
+
+<p id="mwLA">For <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt12" id="mwLQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"i>0"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle i>0}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>i</mi>
+        <mo>></mo>
+        <mn>0</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle i>0}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/1f49f2878fd68a89c3da37eb537198e887cf0293" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:5.063ex; height:2.176ex;" alt="{\displaystyle i>0}"/></span> and <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt13" id="mwLg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"j>0"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle j>0}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>j</mi>
+        <mo>></mo>
+        <mn>0</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle j>0}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/6d6bdb6fe71cd3be192f7b4f9b95b9196da23eda" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.671ex; margin-left: -0.027ex; width:5.246ex; height:2.509ex;" alt="{\displaystyle j>0}"/></span>,</p>
+
+<dl id="mwLw"><dd id="mwMA"><span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt14" id="mwMQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\nD(i,j)=\\min\n\\begin{cases}\nD(i-1,j)+1,\\\\\nD(i,j-1)+1,\\\\\nD(i-1,j-1)+\\delta(a_i,b_j),\n\\end{cases}\n"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle D(i,j)=\min {\begin{cases}D(i-1,j)+1,\\D(i,j-1)+1,\\D(i-1,j-1)+\delta (a_{i},b_{j}),\end{cases}}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>D</mi>
+        <mo stretchy="false">(</mo>
+        <mi>i</mi>
+        <mo>,</mo>
+        <mi>j</mi>
+        <mo stretchy="false">)</mo>
+        <mo>=</mo>
+        <mo movablelimits="true" form="prefix">min</mo>
+        <mrow class="MJX-TeXAtom-ORD">
+          <mrow>
+            <mo>{</mo>
+            <mtable columnalign="left left" rowspacing=".2em" columnspacing="1em" displaystyle="false">
+              <mtr>
+                <mtd>
+                  <mi>D</mi>
+                  <mo stretchy="false">(</mo>
+                  <mi>i</mi>
+                  <mo>−<!-- − --></mo>
+                  <mn>1</mn>
+                  <mo>,</mo>
+                  <mi>j</mi>
+                  <mo stretchy="false">)</mo>
+                  <mo>+</mo>
+                  <mn>1</mn>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>D</mi>
+                  <mo stretchy="false">(</mo>
+                  <mi>i</mi>
+                  <mo>,</mo>
+                  <mi>j</mi>
+                  <mo>−<!-- − --></mo>
+                  <mn>1</mn>
+                  <mo stretchy="false">)</mo>
+                  <mo>+</mo>
+                  <mn>1</mn>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi>D</mi>
+                  <mo stretchy="false">(</mo>
+                  <mi>i</mi>
+                  <mo>−<!-- − --></mo>
+                  <mn>1</mn>
+                  <mo>,</mo>
+                  <mi>j</mi>
+                  <mo>−<!-- − --></mo>
+                  <mn>1</mn>
+                  <mo stretchy="false">)</mo>
+                  <mo>+</mo>
+                  <mi>δ<!-- δ --></mi>
+                  <mo stretchy="false">(</mo>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow class="MJX-TeXAtom-ORD">
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>,</mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow class="MJX-TeXAtom-ORD">
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                  <mo stretchy="false">)</mo>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo fence="true" stretchy="true" symmetric="true"></mo>
+          </mrow>
+        </mrow>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle D(i,j)=\min {\begin{cases}D(i-1,j)+1,\\D(i,j-1)+1,\\D(i-1,j-1)+\delta (a_{i},b_{j}),\end{cases}}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/465395519642860b7f483e0a66c9d8eae5313a35" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -3.838ex; width:42.556ex; height:8.843ex;" alt="{\displaystyle D(i,j)=\min {\begin{cases}D(i-1,j)+1,\\D(i,j-1)+1,\\D(i-1,j-1)+\delta (a_{i},b_{j}),\end{cases}}}"/></span></dd></dl>
+
+<p id="mwMg">where</p>
+
+<dl id="mwMw"><dd id="mwNA"><span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt15" id="mwNQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\n\\delta(a_i,b_j)=\n\\begin{cases}\n0,&amp; a_i=b_j,\\\\\n1,&amp; a_i\\ne b_j.\n\\end{cases}\n"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle \delta (a_{i},b_{j})={\begin{cases}0,&amp;a_{i}=b_{j},\\1,&amp;a_{i}\neq b_{j}.\end{cases}}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>δ<!-- δ --></mi>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>a</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>b</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>=</mo>
+        <mrow class="MJX-TeXAtom-ORD">
+          <mrow>
+            <mo>{</mo>
+            <mtable columnalign="left left" rowspacing=".2em" columnspacing="1em" displaystyle="false">
+              <mtr>
+                <mtd>
+                  <mn>0</mn>
+                  <mo>,</mo>
+                </mtd>
+                <mtd>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow class="MJX-TeXAtom-ORD">
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>=</mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow class="MJX-TeXAtom-ORD">
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>1</mn>
+                  <mo>,</mo>
+                </mtd>
+                <mtd>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow class="MJX-TeXAtom-ORD">
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>≠<!-- ≠ --></mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow class="MJX-TeXAtom-ORD">
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                  <mo>.</mo>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo fence="true" stretchy="true" symmetric="true"></mo>
+          </mrow>
+        </mrow>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \delta (a_{i},b_{j})={\begin{cases}0,&amp;a_{i}=b_{j},\\1,&amp;a_{i}\neq b_{j}.\end{cases}}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/12fefe30fb319ae66914d8ea6f0b81416051782e" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -2.505ex; width:25.236ex; height:6.176ex;" alt="{\displaystyle \delta (a_{i},b_{j})={\begin{cases}0,&amp;a_{i}=b_{j},\\1,&amp;a_{i}\neq b_{j}.\end{cases}}}"/></span></dd></dl>
+
+<p id="mwNg">The three alternatives correspond, respectively, to deleting <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt16" id="mwNw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"a_i"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle a_{i}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>a</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>i</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle a_{i}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0bc77764b2e74e64a63341054fa90f3e07db275f" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.671ex; width:2.029ex; height:2.009ex;" alt="{\displaystyle a_{i}}"/></span>, inserting <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt17" id="mwOA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"b_j"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle b_{j}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>b</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle b_{j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/fa56eff4488494085785b7b0d6e2069bd45a3ce5" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -1.005ex; width:1.907ex; height:2.843ex;" alt="{\displaystyle b_{j}}"/></span>, and either matching or substituting the final symbols of the two prefixes.<sup about="#mwt18" class="mw-ref reference" id="cite_ref-WagnerFischer1974_3-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"WagnerFischer1974"},"body":{"id":"mw-reference-text-cite_note-WagnerFischer1974-3"}}'><a href="#cite_note-WagnerFischer1974-3" id="mwOQ"><span class="mw-reflink-text" id="mwOg"><span class="cite-bracket" id="mwOw">[</span>3<span class="cite-bracket" id="mwPA">]</span></span></a></sup></p>
+
+<p id="mwPQ">The Levenshtein distance between the full strings is <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt19" id="mwPg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"D(m,n)"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle D(m,n)}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>D</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mo>,</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle D(m,n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/442fa131e25b28240ccb151ebb4400477d08ba55" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:8.203ex; height:2.843ex;" alt="{\displaystyle D(m,n)}"/></span>.</p>
+
+<section data-mw-section-id="2" id="mwPw" aria-labelledby="Example"><div class="mw-heading mw-heading3"><h3 id="Example">Example</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=2" title="Edit section: Example"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwQA">The Levenshtein distance between <i id="mwQQ">kitten</i> and <i id="mwQg">sitting</i> is 3. One optimal edit script is:</p>
+
+<ol id="mwQw"><li id="mwRA"><i id="mwRQ">kitten</i> → <i id="mwRg">sitten</i> (substitute <i id="mwRw">s</i> for <i id="mwSA">k</i>);</li>
+<li id="mwSQ"><i id="mwSg">sitten</i> → <i id="mwSw">sittin</i> (substitute <i id="mwTA">i</i> for <i id="mwTQ">e</i>);</li>
+<li id="mwTg"><i id="mwTw">sittin</i> → <i id="mwUA">sitting</i> (insert <i id="mwUQ">g</i> at the end).</li></ol>
+
+<p id="mwUg">A simple deletion example is <i id="mwUw">uninformed</i> → <i id="mwVA">uniformed</i>, which has distance 1.</p>
+
+</section></section><section data-mw-section-id="3" id="mwVQ" aria-labelledby="Properties_and_bounds"><div class="mw-heading mw-heading2"><h2 id="Properties_and_bounds">Properties and bounds</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=3" title="Edit section: Properties and bounds"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwVg">With unit insertion, deletion, and substitution costs, Levenshtein distance is a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Metric_(mathematics)" title="Metric (mathematics)" class="mw-redirect" id="mwVw">metric</a>: it is non-negative, is zero if and only if the two strings are equal, is symmetric, and satisfies the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Triangle_inequality" title="Triangle inequality" id="mwWA">triangle inequality</a>.<sup about="#mwt20" class="mw-ref reference" id="cite_ref-Navarro2001_2-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Navarro2001"}}'><a href="#cite_note-Navarro2001-2" id="mwWQ"><span class="mw-reflink-text" id="mwWg"><span class="cite-bracket" id="mwWw">[</span>2<span class="cite-bracket" id="mwXA">]</span></span></a></sup></p>
+
+<p id="mwXQ">For strings of lengths <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt21" id="mwXg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:2.04ex; height:1.676ex;" alt="{\displaystyle m}"/></span> and <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt22" id="mwXw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.395ex; height:1.676ex;" alt="{\displaystyle n}"/></span>,</p>
+
+<dl id="mwYA"><dd id="mwYQ"><span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt23" id="mwYg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"|m-n|\\leq \\operatorname{lev}(a,b)\\leq \\max(m,n)."}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle |m-n|\leq \operatorname {lev} (a,b)\leq \max(m,n).}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow class="MJX-TeXAtom-ORD">
+          <mo stretchy="false">|</mo>
+        </mrow>
+        <mi>m</mi>
+        <mo>−<!-- − --></mo>
+        <mi>n</mi>
+        <mrow class="MJX-TeXAtom-ORD">
+          <mo stretchy="false">|</mo>
+        </mrow>
+        <mo>≤<!-- ≤ --></mo>
+        <mi>lev</mi>
+        <mo>⁡<!-- ⁡ --></mo>
+        <mo stretchy="false">(</mo>
+        <mi>a</mi>
+        <mo>,</mo>
+        <mi>b</mi>
+        <mo stretchy="false">)</mo>
+        <mo>≤<!-- ≤ --></mo>
+        <mo movablelimits="true" form="prefix">max</mo>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mo>,</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle |m-n|\leq \operatorname {lev} (a,b)\leq \max(m,n).}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/9430e31d2faf5fe27aaa6f9cbb33bb9d072d211e" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:32.994ex; height:2.843ex;" alt="{\displaystyle |m-n|\leq \operatorname {lev} (a,b)\leq \max(m,n).}"/></span></dd></dl>
+
+<p id="mwYw">The lower bound follows because a single insertion or deletion changes the string length by only one. The upper bound can be achieved by substituting symbols in the common-length prefix and then inserting or deleting the remainder.</p>
+
+<p id="mwZA">If the two strings have the same length, their <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hamming_distance" title="Hamming distance" id="mwZQ">Hamming distance</a> is an upper bound on their Levenshtein distance:</p>
+
+<dl id="mwZg"><dd id="mwZw"><span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt24" id="mwaA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\operatorname{lev}(a,b)\\leq d_H(a,b)."}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle \operatorname {lev} (a,b)\leq d_{H}(a,b).}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>lev</mi>
+        <mo>⁡<!-- ⁡ --></mo>
+        <mo stretchy="false">(</mo>
+        <mi>a</mi>
+        <mo>,</mo>
+        <mi>b</mi>
+        <mo stretchy="false">)</mo>
+        <mo>≤<!-- ≤ --></mo>
+        <msub>
+          <mi>d</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>H</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">(</mo>
+        <mi>a</mi>
+        <mo>,</mo>
+        <mi>b</mi>
+        <mo stretchy="false">)</mo>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \operatorname {lev} (a,b)\leq d_{H}(a,b).}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/1d005bf4b1fef91a5406b1cf809082a85ecaa213" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:19.694ex; height:2.843ex;" alt="{\displaystyle \operatorname {lev} (a,b)\leq d_{H}(a,b).}"/></span></dd></dl>
+
+<p id="mwaQ">For example, <i id="mwag">flaw</i> and <i id="mwaw">lawn</i> have Hamming distance 4 but Levenshtein distance 2: delete <i id="mwbA">f</i> from the beginning and insert <i id="mwbQ">n</i> at the end.</p>
+
+<p id="mwbg">If substitutions are disallowed and only insertions and deletions are permitted, the resulting edit distance between strings of lengths <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt25" id="mwbw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:2.04ex; height:1.676ex;" alt="{\displaystyle m}"/></span> and <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt26" id="mwcA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.395ex; height:1.676ex;" alt="{\displaystyle n}"/></span> is</p>
+
+<dl id="mwcQ"><dd id="mwcg"><span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt27" id="mwcw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m+n-2L,"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle m+n-2L,}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+        <mo>+</mo>
+        <mi>n</mi>
+        <mo>−<!-- − --></mo>
+        <mn>2</mn>
+        <mi>L</mi>
+        <mo>,</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m+n-2L,}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/434abb784001017f725a9032448cc6ed41e6cd3a" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.671ex; width:12.508ex; height:2.509ex;" alt="{\displaystyle m+n-2L,}"/></span></dd></dl>
+
+<p id="mwdA">where <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt28" id="mwdQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"L"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle L}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>L</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle L}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/103168b86f781fe6e9a4a87b8ea1cebe0ad4ede8" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.583ex; height:2.176ex;" alt="{\displaystyle L}"/></span> is the length of a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Longest_common_subsequence" title="Longest common subsequence" id="mwdg">longest common subsequence</a>. This formula does not apply unchanged to classical Levenshtein distance because a substitution has cost 1 rather than the cost 2 of a deletion followed by an insertion.<sup about="#mwt29" class="mw-ref reference" id="cite_ref-WagnerFischer1974_3-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"WagnerFischer1974"}}'><a href="#cite_note-WagnerFischer1974-3" id="mwdw"><span class="mw-reflink-text" id="mweA"><span class="cite-bracket" id="mweQ">[</span>3<span class="cite-bracket" id="mweg">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="4" id="mwew" aria-labelledby="Applications"><div class="mw-heading mw-heading2"><h2 id="Applications">Applications</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=4" title="Edit section: Applications"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<section data-mw-section-id="5" id="mwfA" aria-labelledby="Approximate_string_matching_and_spelling_correction"><div class="mw-heading mw-heading3"><h3 id="Approximate_string_matching_and_spelling_correction">Approximate string matching and spelling correction</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=5" title="Edit section: Approximate string matching and spelling correction"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwfQ">Levenshtein distance is a basic model in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Approximate_string_matching" title="Approximate string matching" id="mwfg">approximate string matching</a>, where strings are allowed to differ by a small number of edits. Applications include <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Spell_checker" title="Spell checker" id="mwfw">spell checkers</a>, correction of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Optical_character_recognition" title="Optical character recognition" id="mwgA">optical character recognition</a> output, and approximate lookup in textual databases.<sup about="#mwt30" class="mw-ref reference" id="cite_ref-Navarro2001_2-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Navarro2001"}}'><a href="#cite_note-Navarro2001-2" id="mwgQ"><span class="mw-reflink-text" id="mwgg"><span class="cite-bracket" id="mwgw">[</span>2<span class="cite-bracket" id="mwhA">]</span></span></a></sup></p>
+
+<p id="mwhQ">For large collections, systems commonly combine edit-distance computation with filtering, indexing, q-grams, or automata so that the full distance need not be evaluated against every possible candidate.<sup about="#mwt31" class="mw-ref reference" id="cite_ref-Navarro2001_2-3" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Navarro2001"}}'><a href="#cite_note-Navarro2001-2" id="mwhg"><span class="mw-reflink-text" id="mwhw"><span class="cite-bracket" id="mwiA">[</span>2<span class="cite-bracket" id="mwiQ">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="6" id="mwig" aria-labelledby="Record_linkage"><div class="mw-heading mw-heading3"><h3 id="Record_linkage">Record linkage</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=6" title="Edit section: Record linkage"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwiw">In <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Record_linkage" title="Record linkage" id="mwjA">record linkage</a> and deduplication, edit distances can be used as features for comparing names, addresses, and other text fields that may contain spelling variation or transcription errors. In practice, candidate-generation or blocking steps are usually used before detailed pairwise comparison.</p>
+
+</section><section data-mw-section-id="7" id="mwjQ" aria-labelledby="Linguistics_and_speech"><div class="mw-heading mw-heading3"><h3 id="Linguistics_and_speech">Linguistics and speech</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=7" title="Edit section: Linguistics and speech"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwjg">In quantitative linguistics, Levenshtein distance is often applied to phonetic or phonological transcriptions and then aggregated or normalized across comparable items, rather than treating a single raw word pair as a direct measure of the distance between entire languages. It has been used extensively in dialectometry to quantify pronunciation differences between language varieties.<sup about="#mwt32" class="mw-ref reference" id="cite_ref-4" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-4"}}'><a href="#cite_note-4" id="mwjw"><span class="mw-reflink-text" id="mwkA"><span class="cite-bracket" id="mwkQ">[</span>4<span class="cite-bracket" id="mwkg">]</span></span></a></sup></p>
+
+<p id="mwkw">Weighted versions can assign lower or higher costs to phoneme substitutions according to phonological features, for example in speech-identification studies.<sup about="#mwt33" class="mw-ref reference" id="cite_ref-5" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-5"}}'><a href="#cite_note-5" id="mwlA"><span class="mw-reflink-text" id="mwlQ"><span class="cite-bracket" id="mwlg">[</span>5<span class="cite-bracket" id="mwlw">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="8" id="mwmA" aria-labelledby="Bioinformatics"><div class="mw-heading mw-heading3"><h3 id="Bioinformatics">Bioinformatics</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=8" title="Edit section: Bioinformatics"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwmQ">Edit distance and sequence alignment are closely related in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bioinformatics" title="Bioinformatics" id="mwmg">bioinformatics</a>. Insertions, deletions, and substitutions provide a simple model of differences between biological sequences, although practical sequence-alignment methods generally use richer scoring systems and gap penalties than unit-cost Levenshtein distance.<sup about="#mwt34" class="mw-ref reference" id="cite_ref-Berger2021_6-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Berger2021"},"body":{"id":"mw-reference-text-cite_note-Berger2021-6"}}'><a href="#cite_note-Berger2021-6" id="mwmw"><span class="mw-reflink-text" id="mwnA"><span class="cite-bracket" id="mwnQ">[</span>6<span class="cite-bracket" id="mwng">]</span></span></a></sup></p>
+
+</section></section><section data-mw-section-id="9" id="mwnw" aria-labelledby="Relationship_to_other_string_distances"><div class="mw-heading mw-heading2"><h2 id="Relationship_to_other_string_distances">Relationship to other string distances</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=9" title="Edit section: Relationship to other string distances"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<span class="mw-empty-elt" about="#mwt35" typeof="mw:Transclusion" id="mwoA" data-mw='{"parts":[{"template":{"target":{"wt":"Main","href":"./Template:Main"},"params":{"1":{"wt":"Edit distance"}},"i":0}}]}'><style data-mw-deduplicate="TemplateStyles:r1368532237" typeof="mw:Extension/templatestyles" about="#mwt36" data-mw='{"name":"templatestyles","attrs":{"src":"Module:Hatnote/styles.css"},"body":{"extsrc":""}}'>.mw-parser-output .hatnote{font-style:italic}.mw-parser-output div.hatnote{padding-left:1.6em;margin-bottom:0.5em}.mw-parser-output .hatnote i{font-style:normal}.mw-parser-output .hatnote+.mw-empty-elt+.hatnote{margin-top:-0.5em}@media print{body.ns-0 .mw-parser-output .hatnote{display:none!important}}</style></span><div role="note" class="hatnote navigation-not-searchable" about="#mwt35" id="mwoQ">Main article: <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Edit_distance" title="Edit distance">Edit distance</a></div>
+
+<p id="mwog">Levenshtein distance is one member of a broader family of edit-distance models.<sup about="#mwt37" class="mw-ref reference" id="cite_ref-Navarro2001_2-4" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Navarro2001"}}'><a href="#cite_note-Navarro2001-2" id="mwow"><span class="mw-reflink-text" id="mwpA"><span class="cite-bracket" id="mwpQ">[</span>2<span class="cite-bracket" id="mwpg">]</span></span></a></sup></p>
+
+<ul id="mwpw"><li id="mwqA">The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance" title="Damerau–Levenshtein distance" id="mwqQ">Damerau–Levenshtein distance</a> additionally allows a transposition of two adjacent symbols.</li>
+<li id="mwqg">The longest-common-subsequence distance allows only insertions and deletions.</li>
+<li id="mwqw">The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hamming_distance" title="Hamming distance" id="mwrA">Hamming distance</a> allows only substitutions and therefore applies directly only to strings of equal length.</li></ul>
+
+<p id="mwrQ">More general edit-distance models may assign different costs to different operations. Such a weighted edit distance is not automatically a metric for arbitrary cost functions; metric properties depend on the conditions imposed on those costs.<sup about="#mwt38" class="mw-ref reference" id="cite_ref-Navarro2001_2-5" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Navarro2001"}}'><a href="#cite_note-Navarro2001-2" id="mwrg"><span class="mw-reflink-text" id="mwrw"><span class="cite-bracket" id="mwsA">[</span>2<span class="cite-bracket" id="mwsQ">]</span></span></a></sup></p>
+
+<p id="mwsg">Other string-comparison measures, such as <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Jaro–Winkler_distance" title="Jaro–Winkler distance" id="mwsw">Jaro and Jaro–Winkler similarity</a>, use different matching models rather than a minimum-cost script of insertions, deletions, and substitutions.<sup about="#mwt39" class="mw-ref reference" id="cite_ref-7" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-7"}}'><a href="#cite_note-7" id="mwtA"><span class="mw-reflink-text" id="mwtQ"><span class="cite-bracket" id="mwtg">[</span>7<span class="cite-bracket" id="mwtw">]</span></span></a></sup></p>
+
+<p id="mwuA">Sequence-alignment algorithms such as <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm" title="Needleman–Wunsch algorithm" id="mwuQ">Needleman–Wunsch</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Smith–Waterman_algorithm" title="Smith–Waterman algorithm" id="mwug">Smith–Waterman</a> solve closely related dynamic-programming problems, but typically optimize alignment scores with application-specific substitution scores and gap penalties rather than classical unit edit costs.<sup about="#mwt40" class="mw-ref reference" id="cite_ref-Berger2021_6-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Berger2021"}}'><a href="#cite_note-Berger2021-6" id="mwuw"><span class="mw-reflink-text" id="mwvA"><span class="cite-bracket" id="mwvQ">[</span>6<span class="cite-bracket" id="mwvg">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="10" id="mwvw" aria-labelledby="Computation"><div class="mw-heading mw-heading2"><h2 id="Computation">Computation</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=10" title="Edit section: Computation"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<section data-mw-section-id="11" id="mwwA" aria-labelledby="Dynamic_programming"><div class="mw-heading mw-heading3"><h3 id="Dynamic_programming">Dynamic programming</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=11" title="Edit section: Dynamic programming"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwwQ">The standard dynamic-programming algorithm stores the distances between prefixes of the two input strings. It is commonly associated with Wagner and Fischer's 1974 formulation of the string-to-string correction problem.<sup about="#mwt41" class="mw-ref reference" id="cite_ref-WagnerFischer1974_3-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"WagnerFischer1974"}}'><a href="#cite_note-WagnerFischer1974-3" id="mwwg"><span class="mw-reflink-text" id="mwww"><span class="cite-bracket" id="mwxA">[</span>3<span class="cite-bracket" id="mwxQ">]</span></span></a></sup></p>
+
+<div class="mw-highlight mw-highlight-lang-text mw-content-ltr" dir="ltr" typeof="mw:Extension/syntaxhighlight" about="#mwt42" id="mwxg" data-mw='{"name":"syntaxhighlight","attrs":{"lang":"text"},"body":{"extsrc":"\nfunction LevenshteinDistance(char s[1..m], char t[1..n]):\n    declare int d[0..m, 0..n]\n\n    for i from 0 to m:\n        d[i, 0] := i\n\n    for j from 0 to n:\n        d[0, j] := j\n\n    for i from 1 to m:\n        for j from 1 to n:\n            if s[i] = t[j]:\n                substitutionCost := 0\n            else:\n                substitutionCost := 1\n\n            d[i, j] := minimum(\n                d[i-1, j]   + 1,                  // deletion of s[i]\n                d[i, j-1]   + 1,                  // insertion of t[j]\n                d[i-1, j-1] + substitutionCost    // match or substitution\n            )\n\n    return d[m, n]\n"}}'><pre id="mwxw"><span id="mwyA"></span>function LevenshteinDistance(char s[1..m], char t[1..n]):
+    declare int d[0..m, 0..n]
+
+    for i from 0 to m:
+        d[i, 0] := i
+
+    for j from 0 to n:
+        d[0, j] := j
+
+    for i from 1 to m:
+        for j from 1 to n:
+            if s[i] = t[j]:
+                substitutionCost := 0
+            else:
+                substitutionCost := 1
+
+            d[i, j] := minimum(
+                d[i-1, j]   + 1,                  // deletion of s[i]
+                d[i, j-1]   + 1,                  // insertion of t[j]
+                d[i-1, j-1] + substitutionCost    // match or substitution
+            )
+
+    return d[m, n]
+</pre></div>
+
+<p id="mwyQ">The invariant is that <code id="mwyg">d[i,j]</code> is the minimum number of edits needed to transform the first <code id="mwyw">i</code> symbols of <code id="mwzA">s</code> into the first <code id="mwzQ">j</code> symbols of <code id="mwzg">t</code>.</p>
+
+<p id="mwzw">The full matrix takes <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt43" id="mw0A" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\Theta(mn)"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle \Theta (mn)}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi mathvariant="normal">Θ<!-- Θ --></mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \Theta (mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3869811594f411c0d4025ba7b8e5f8069b436cf4" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:7.053ex; height:2.843ex;" alt="{\displaystyle \Theta (mn)}"/></span> time and <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt44" id="mw0Q" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\Theta(mn)"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle \Theta (mn)}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi mathvariant="normal">Θ<!-- Θ --></mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \Theta (mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3869811594f411c0d4025ba7b8e5f8069b436cf4" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:7.053ex; height:2.843ex;" alt="{\displaystyle \Theta (mn)}"/></span> space.<sup about="#mwt45" class="mw-ref reference" id="cite_ref-WagnerFischer1974_3-3" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"WagnerFischer1974"}}'><a href="#cite_note-WagnerFischer1974-3" id="mw0g"><span class="mw-reflink-text" id="mw0w"><span class="cite-bracket" id="mw1A">[</span>3<span class="cite-bracket" id="mw1Q">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="12" id="mw1g" aria-labelledby="Memory_reduction_and_edit-script_reconstruction"><div class="mw-heading mw-heading3"><h3 id="Memory_reduction_and_edit-script_reconstruction">Memory reduction and edit-script reconstruction</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=12" title="Edit section: Memory reduction and edit-script reconstruction"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mw1w">If only the numerical distance is required, each row depends only on the previous row and the current row. By storing the shorter dimension as the row width, the working memory can therefore be reduced to <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt46" id="mw2A" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(\\min(m,n))"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle O(\min(m,n))}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mo movablelimits="true" form="prefix">min</mo>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mo>,</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(\min(m,n))}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/f8796cfd533d1cdf770cd6feb8dc7409506222ad" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:13.736ex; height:2.843ex;" alt="{\displaystyle O(\min(m,n))}"/></span>.<sup about="#mwt47" class="mw-ref reference" id="cite_ref-Ukkonen1985_8-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Ukkonen1985"},"body":{"id":"mw-reference-text-cite_note-Ukkonen1985-8"}}'><a href="#cite_note-Ukkonen1985-8" id="mw2Q"><span class="mw-reflink-text" id="mw2g"><span class="cite-bracket" id="mw2w">[</span>8<span class="cite-bracket" id="mw3A">]</span></span></a></sup></p>
+
+<p id="mw3Q">If an optimal edit script is also required, it can be recovered by tracing predecessors through the full matrix. There may be several distinct optimal scripts with the same distance. Divide-and-conquer techniques based on <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hirschberg's_algorithm" title="Hirschberg's algorithm" id="mw3g">Hirschberg's algorithm</a> can recover an optimal alignment using linear space.<sup about="#mwt48" class="mw-ref reference" id="cite_ref-9" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-9"}}'><a href="#cite_note-9" id="mw3w"><span class="mw-reflink-text" id="mw4A"><span class="cite-bracket" id="mw4Q">[</span>9<span class="cite-bracket" id="mw4g">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="13" id="mw4w" aria-labelledby="Distance-sensitive_and_threshold_algorithms"><div class="mw-heading mw-heading3"><h3 id="Distance-sensitive_and_threshold_algorithms">Distance-sensitive and threshold algorithms</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=13" title="Edit section: Distance-sensitive and threshold algorithms"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mw5A">When the true edit distance <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt49" id="mw5Q" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"s"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle s}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>s</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle s}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/01d131dfd7673938b947072a13a9744fe997e632" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.09ex; height:1.676ex;" alt="{\displaystyle s}"/></span> is small compared with the input lengths, an exact algorithm need not evaluate the entire dynamic-programming matrix. Ukkonen developed exact threshold and distance-sensitive algorithms whose running time depends on <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt50" id="mw5g" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"s"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle s}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>s</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle s}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/01d131dfd7673938b947072a13a9744fe997e632" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.09ex; height:1.676ex;" alt="{\displaystyle s}"/></span>. One of the algorithms in his 1985 paper runs in <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt51" id="mw5w" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(s\\min(m,n))"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle O(s\min(m,n))}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>s</mi>
+        <mo movablelimits="true" form="prefix">min</mo>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mo>,</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(s\min(m,n))}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c98ac2317b39737656047d8ee11c800c0cd6b218" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:15.214ex; height:2.843ex;" alt="{\displaystyle O(s\min(m,n))}"/></span> time; for the unit-cost case, the distance alone can be obtained with space <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt52" id="mw6A" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(\\min(s,m,n))"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle O(\min(s,m,n))}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mo movablelimits="true" form="prefix">min</mo>
+        <mo stretchy="false">(</mo>
+        <mi>s</mi>
+        <mo>,</mo>
+        <mi>m</mi>
+        <mo>,</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(\min(s,m,n))}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/004d0e76ba5a9df065c785c2e6bd7b3b85b154c8" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:15.861ex; height:2.843ex;" alt="{\displaystyle O(\min(s,m,n))}"/></span>.<sup about="#mwt53" class="mw-ref reference" id="cite_ref-Ukkonen1985_8-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Ukkonen1985"}}'><a href="#cite_note-Ukkonen1985-8" id="mw6Q"><span class="mw-reflink-text" id="mw6g"><span class="cite-bracket" id="mw6w">[</span>8<span class="cite-bracket" id="mw7A">]</span></span></a></sup></p>
+
+<p id="mw7Q">These are exact algorithms: the word “approximate” in <i id="mw7g">approximate string matching</i> refers to allowing differences between strings, not to approximating the numerical edit distance.</p>
+
+</section><section data-mw-section-id="14" id="mw7w" aria-labelledby="Bit-parallel_computation"><div class="mw-heading mw-heading3"><h3 id="Bit-parallel_computation">Bit-parallel computation</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=14" title="Edit section: Bit-parallel computation"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mw8A">For approximate pattern matching, Gene Myers proposed a bit-vector algorithm in 1999 that packs many dynamic-programming states into machine-word bits, allowing multiple state updates to be performed in parallel with bitwise operations.<sup about="#mwt54" class="mw-ref reference" id="cite_ref-Myers1999_10-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Myers1999"},"body":{"id":"mw-reference-text-cite_note-Myers1999-10"}}'><a href="#cite_note-Myers1999-10" id="mw8Q"><span class="mw-reflink-text" id="mw8g"><span class="cite-bracket" id="mw8w">[</span>10<span class="cite-bracket" id="mw9A">]</span></span></a></sup></p>
+
+<p id="mw9Q">This should not be confused with Myers's 1986 O(ND) difference algorithm or the O(NP) sequence-comparison algorithm of Wu, Manber, Myers, and Miller. Those algorithms use shortest edit scripts consisting of insertions and deletions; under that model a substitution is equivalent to a deletion followed by an insertion and therefore costs 2, rather than the unit substitution cost of classical Levenshtein distance.<sup about="#mwt55" class="mw-ref reference" id="cite_ref-11" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-11"}}'><a href="#cite_note-11" id="mw9g"><span class="mw-reflink-text" id="mw9w"><span class="cite-bracket" id="mw-A">[</span>11<span class="cite-bracket" id="mw-Q">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="15" id="mw-g" aria-labelledby="Automata"><div class="mw-heading mw-heading3"><h3 id="Automata">Automata</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=15" title="Edit section: Automata"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mw-w">A <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_automaton" title="Levenshtein automaton" id="mw_A">Levenshtein automaton</a> for a fixed pattern and threshold <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt56" id="mw_Q" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"k"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle k}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>k</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle k}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c3c9a2c7b599b37105512c5d570edc034056dd40" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.211ex; height:2.176ex;" alt="{\displaystyle k}"/></span> recognizes exactly the strings whose Levenshtein distance from the pattern is at most <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt57" id="mw_g" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"k"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle k}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>k</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle k}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c3c9a2c7b599b37105512c5d570edc034056dd40" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.211ex; height:2.176ex;" alt="{\displaystyle k}"/></span>.<sup about="#mwt58" class="mw-ref reference" id="cite_ref-12" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-12"}}'><a href="#cite_note-12" id="mw_w"><span class="mw-reflink-text" id="mwAQA"><span class="cite-bracket" id="mwAQE">[</span>12<span class="cite-bracket" id="mwAQI">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="16" id="mwAQM" aria-labelledby="Approximation"><div class="mw-heading mw-heading3"><h3 id="Approximation">Approximation</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=16" title="Edit section: Approximation"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwAQQ">For two strings of length <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt59" id="mwAQU" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.395ex; height:1.676ex;" alt="{\displaystyle n}"/></span>, Andoni, Krauthgamer, and Onak gave an algorithm running in <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt60" id="mwAQY" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n^{1+\\varepsilon}"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle n^{1+\varepsilon }}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msup>
+          <mi>n</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>1</mn>
+            <mo>+</mo>
+            <mi>ε<!-- ε --></mi>
+          </mrow>
+        </msup>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n^{1+\varepsilon }}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/8fb8a26b93583f69105901b08cef9fe448e7f85b" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:4.494ex; height:2.676ex;" alt="{\displaystyle n^{1+\varepsilon }}"/></span> time with approximation factor <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt61" id="mwAQc" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"(\\log n)^{O(1/\\varepsilon)}"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle (\log n)^{O(1/\varepsilon )}}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mo stretchy="false">(</mo>
+        <mi>log</mi>
+        <mo>⁡<!-- ⁡ --></mo>
+        <mi>n</mi>
+        <msup>
+          <mo stretchy="false">)</mo>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mi>O</mi>
+            <mo stretchy="false">(</mo>
+            <mn>1</mn>
+            <mrow class="MJX-TeXAtom-ORD">
+              <mo>/</mo>
+            </mrow>
+            <mi>ε<!-- ε --></mi>
+            <mo stretchy="false">)</mo>
+          </mrow>
+        </msup>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle (\log n)^{O(1/\varepsilon )}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/bfb91ed8f205ca16e2b391b756b278e14331eed9" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:11.738ex; height:3.343ex;" alt="{\displaystyle (\log n)^{O(1/\varepsilon )}}"/></span>, for every fixed <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt62" id="mwAQg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\varepsilon>0"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle \varepsilon >0}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>ε<!-- ε --></mi>
+        <mo>></mo>
+        <mn>0</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \varepsilon >0}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/e04ec3670b50384a3ce48aca42e7cc5131a06b12" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:5.344ex; height:2.176ex;" alt="{\displaystyle \varepsilon >0}"/></span>.<sup about="#mwt63" class="mw-ref reference" id="cite_ref-13" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-13"}}'><a href="#cite_note-13" id="mwAQk"><span class="mw-reflink-text" id="mwAQo"><span class="cite-bracket" id="mwAQs">[</span>13<span class="cite-bracket" id="mwAQw">]</span></span></a></sup> In 2020, Andoni and Nosatzki obtained a constant-factor approximation in <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt64" id="mwAQ0" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n^{1+\\varepsilon}"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle n^{1+\varepsilon }}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msup>
+          <mi>n</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>1</mn>
+            <mo>+</mo>
+            <mi>ε<!-- ε --></mi>
+          </mrow>
+        </msup>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n^{1+\varepsilon }}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/8fb8a26b93583f69105901b08cef9fe448e7f85b" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:4.494ex; height:2.676ex;" alt="{\displaystyle n^{1+\varepsilon }}"/></span> time for every fixed <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt65" id="mwAQ4" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\varepsilon>0"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle \varepsilon >0}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>ε<!-- ε --></mi>
+        <mo>></mo>
+        <mn>0</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \varepsilon >0}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/e04ec3670b50384a3ce48aca42e7cc5131a06b12" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:5.344ex; height:2.176ex;" alt="{\displaystyle \varepsilon >0}"/></span>.<sup about="#mwt66" class="mw-ref reference" id="cite_ref-14" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-14"}}'><a href="#cite_note-14" id="mwAQ8"><span class="mw-reflink-text" id="mwARA"><span class="cite-bracket" id="mwARE">[</span>14<span class="cite-bracket" id="mwARI">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="17" id="mwARM" aria-labelledby="Computational_complexity"><div class="mw-heading mw-heading3"><h3 id="Computational_complexity">Computational complexity</h3><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=17" title="Edit section: Computational complexity"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwARQ">For equal-length strings of length <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt67" id="mwARU" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.395ex; height:1.676ex;" alt="{\displaystyle n}"/></span>, Backurs and Indyk showed in 2015 that an exact algorithm running in <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt68" id="mwARY" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(n^{2-\\varepsilon})"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle O(n^{2-\varepsilon })}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <msup>
+          <mi>n</mi>
+          <mrow class="MJX-TeXAtom-ORD">
+            <mn>2</mn>
+            <mo>−<!-- − --></mo>
+            <mi>ε<!-- ε --></mi>
+          </mrow>
+        </msup>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(n^{2-\varepsilon })}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/58f14d8ea319140903f5dc0d951759e1a128f028" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:8.076ex; height:3.176ex;" alt="{\displaystyle O(n^{2-\varepsilon })}"/></span> time for any constant <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt69" id="mwARc" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\varepsilon>0"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle \varepsilon >0}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>ε<!-- ε --></mi>
+        <mo>></mo>
+        <mn>0</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \varepsilon >0}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/e04ec3670b50384a3ce48aca42e7cc5131a06b12" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:5.344ex; height:2.176ex;" alt="{\displaystyle \varepsilon >0}"/></span> would falsify the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Strong_exponential_time_hypothesis" title="Strong exponential time hypothesis" class="mw-redirect" id="mwARg">strong exponential time hypothesis</a> (SETH). This is a conditional lower bound rather than an unconditional proof that quadratic time is necessary in all computational models.<sup about="#mwt70" class="mw-ref reference" id="cite_ref-BackursIndyk2015_15-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"BackursIndyk2015"},"body":{"id":"mw-reference-text-cite_note-BackursIndyk2015-15"}}'><a href="#cite_note-BackursIndyk2015-15" id="mwARk"><span class="mw-reflink-text" id="mwARo"><span class="cite-bracket" id="mwARs">[</span>15<span class="cite-bracket" id="mwARw">]</span></span></a></sup></p>
+
+<p id="mwAR0">An older unconditional lower bound of <span class="mwe-math-element mwe-math-element-inline" typeof="mw:Extension/math" about="#mwt71" id="mwAR4" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\Omega(mn)"}}'><span class="mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" class="mathjax_ignore" alttext="{\displaystyle \Omega (mn)}">
+  <semantics>
+    <mrow class="MJX-TeXAtom-ORD">
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi mathvariant="normal">Ω<!-- Ω --></mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \Omega (mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/1d08bc5eb9fb1256ef20d22141c17817d6292eac" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.838ex; width:6.922ex; height:2.843ex;" alt="{\displaystyle \Omega (mn)}"/></span> applies in a comparison model in which the only queries allowed on input symbols are equality comparisons.<sup about="#mwt72" class="mw-ref reference" id="cite_ref-16" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-16"}}'><a href="#cite_note-16" id="mwAR8"><span class="mw-reflink-text" id="mwASA"><span class="cite-bracket" id="mwASE">[</span>16<span class="cite-bracket" id="mwASI">]</span></span></a></sup></p>
+
+</section></section><section data-mw-section-id="18" id="mwASM" aria-labelledby="Unicode_and_the_unit_of_comparison"><div class="mw-heading mw-heading2"><h2 id="Unicode_and_the_unit_of_comparison">Unicode and the unit of comparison</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=18" title="Edit section: Unicode and the unit of comparison"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwASQ">The mathematical definition of Levenshtein distance is over sequences of symbols; it does not itself specify what a “character” in software must be. For <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Unicode" title="Unicode" id="mwASU">Unicode</a> text, an implementation may operate on encoded bytes, code units, Unicode code points, or user-perceived characters represented by extended grapheme clusters. Different choices can produce different distance values.</p>
+
+<p id="mwASY">Unicode Standard Annex #29 defines <i id="mwASc">extended grapheme clusters</i> as an algorithmic approximation to user-perceived characters.<sup about="#mwt73" class="mw-ref reference" id="cite_ref-UAX29_17-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"UAX29"},"body":{"id":"mw-reference-text-cite_note-UAX29-17"}}'><a href="#cite_note-UAX29-17" id="mwASg"><span class="mw-reflink-text" id="mwASk"><span class="cite-bracket" id="mwASo">[</span>17<span class="cite-bracket" id="mwASs">]</span></span></a></sup></p>
+
+<p id="mwASw">In addition, canonically equivalent Unicode text can be represented by different sequences of code points. Unicode Standard Annex #15 defines normalization forms such as NFC and NFD for canonical equivalence.<sup about="#mwt74" class="mw-ref reference" id="cite_ref-UAX15_18-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"UAX15"},"body":{"id":"mw-reference-text-cite_note-UAX15-18"}}'><a href="#cite_note-UAX15-18" id="mwAS0"><span class="mw-reflink-text" id="mwAS4"><span class="cite-bracket" id="mwAS8">[</span>18<span class="cite-bracket" id="mwATA">]</span></span></a></sup> Consequently, implementations that compare Unicode text should specify both the sequence unit being compared and any normalization performed before the distance is calculated.</p>
+
+</section><section data-mw-section-id="19" id="mwATE" aria-labelledby="History"><div class="mw-heading mw-heading2"><h2 id="History">History</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=19" title="Edit section: History"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<p id="mwATI">Levenshtein's 1965 paper introduced the edit metric in coding theory but did not present the matrix algorithm now commonly used to compute it.<sup about="#mwt75" class="mw-ref reference" id="cite_ref-Levenshtein1965_1-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Levenshtein1965"}}'><a href="#cite_note-Levenshtein1965-1" id="mwATM"><span class="mw-reflink-text" id="mwATQ"><span class="cite-bracket" id="mwATU">[</span>1<span class="cite-bracket" id="mwATY">]</span></span></a></sup> Dynamic-programming methods for sequence comparison were developed independently in several areas in the late 1960s and 1970s; Wagner and Fischer's 1974 string-to-string correction formulation became a standard presentation of the quadratic dynamic program.<sup about="#mwt76" class="mw-ref reference" id="cite_ref-WagnerFischer1974_3-4" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"WagnerFischer1974"}}'><a href="#cite_note-WagnerFischer1974-3" id="mwATc"><span class="mw-reflink-text" id="mwATg"><span class="cite-bracket" id="mwATk">[</span>3<span class="cite-bracket" id="mwATo">]</span></span></a></sup><sup about="#mwt77" class="mw-ref reference" id="cite_ref-Berger2021_6-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Berger2021"}}'><a href="#cite_note-Berger2021-6" id="mwATs"><span class="mw-reflink-text" id="mwATw"><span class="cite-bracket" id="mwAT0">[</span>6<span class="cite-bracket" id="mwAT4">]</span></span></a></sup></p>
+
+<p id="mwAT8">Later work developed linear-space reconstruction, distance-sensitive algorithms, bit-parallel methods, Levenshtein automata, approximation algorithms, and conditional lower bounds on exact computation.<sup about="#mwt78" class="mw-ref reference" id="cite_ref-Ukkonen1985_8-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Ukkonen1985"}}'><a href="#cite_note-Ukkonen1985-8" id="mwAUA"><span class="mw-reflink-text" id="mwAUE"><span class="cite-bracket" id="mwAUI">[</span>8<span class="cite-bracket" id="mwAUM">]</span></span></a></sup><sup about="#mwt79" class="mw-ref reference" id="cite_ref-Myers1999_10-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Myers1999"}}'><a href="#cite_note-Myers1999-10" id="mwAUQ"><span class="mw-reflink-text" id="mwAUU"><span class="cite-bracket" id="mwAUY">[</span>10<span class="cite-bracket" id="mwAUc">]</span></span></a></sup><sup about="#mwt80" class="mw-ref reference" id="cite_ref-BackursIndyk2015_15-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"BackursIndyk2015"}}'><a href="#cite_note-BackursIndyk2015-15" id="mwAUg"><span class="mw-reflink-text" id="mwAUk"><span class="cite-bracket" id="mwAUo">[</span>15<span class="cite-bracket" id="mwAUs">]</span></span></a></sup></p>
+
+</section><section data-mw-section-id="20" id="mwAUw" aria-labelledby="See_also"><div class="mw-heading mw-heading2"><h2 id="See_also">See also</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=20" title="Edit section: See also"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<ul id="mwAU0"><li id="mwAU4"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Agrep" title="Agrep" id="mwAU8">agrep</a></li>
+<li id="mwAVA"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Approximate_string_matching" title="Approximate string matching" id="mwAVE">Approximate string matching</a></li>
+<li id="mwAVI"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Diff" title="Diff" id="mwAVM">diff</a></li>
+<li id="mwAVQ"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dynamic_time_warping" title="Dynamic time warping" id="mwAVU">Dynamic time warping</a></li>
+<li id="mwAVY"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hamming_distance" title="Hamming distance" id="mwAVc">Hamming distance</a></li>
+<li id="mwAVg"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Jaro–Winkler_distance" title="Jaro–Winkler distance" id="mwAVk">Jaro–Winkler distance</a></li>
+<li id="mwAVo"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm" title="Needleman–Wunsch algorithm" id="mwAVs">Needleman–Wunsch algorithm</a></li>
+<li id="mwAVw"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Smith–Waterman_algorithm" title="Smith–Waterman algorithm" id="mwAV0">Smith–Waterman algorithm</a></li>
+<li id="mwAV4"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_metric" title="String metric" id="mwAV8">String metric</a></li></ul>
+
+</section><section data-mw-section-id="21" id="mwAWA" aria-labelledby="References"><div class="mw-heading mw-heading2"><h2 id="References">References</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=21" title="Edit section: References"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<div class="mw-references-wrap mw-references-columns" typeof="mw:Extension/references" about="#mwt81" id="mwAWE" data-mw='{"name":"references","attrs":{}}'><ol class="mw-references references" id="mwAWI"><li about="#cite_note-Levenshtein1965-1" id="cite_note-Levenshtein1965-1" data-mw-footnote-number="1"><span rel="mw:referencedBy" class="mw-cite-backlink" id="mwAWM"><a href="#cite_ref-Levenshtein1965_1-0" id="mwAWQ"><span class="mw-linkback-text" id="mwAWU">1</span></a> <a href="#cite_ref-Levenshtein1965_1-1" id="mwAWY"><span class="mw-linkback-text" id="mwAWc">2</span></a> <a href="#cite_ref-Levenshtein1965_1-2" id="mwAWg"><span class="mw-linkback-text" id="mwAWk">3</span></a></span> <span id="mw-reference-text-cite_note-Levenshtein1965-1" class="mw-reference-text reference-text">V. I. Levenshtein, “Binary codes capable of correcting deletions, insertions, and reversals”, <i id="mwAWo">Doklady Akademii Nauk SSSR</i>, vol. 163, no. 4, 1965, pp. 845–848. English translation in <i id="mwAWs">Soviet Physics Doklady</i>, vol. 10, no. 8, 1966, pp. 707–710. <a rel="mw:ExtLink nofollow" href="https://www.mathnet.ru/eng/dan31411" class="external text" id="mwAWw">Math-Net</a>.</span></li>
+<li about="#cite_note-Navarro2001-2" id="cite_note-Navarro2001-2" data-mw-footnote-number="2"><span rel="mw:referencedBy" class="mw-cite-backlink" id="mwAW0"><a href="#cite_ref-Navarro2001_2-0" id="mwAW4"><span class="mw-linkback-text" id="mwAW8">1</span></a> <a href="#cite_ref-Navarro2001_2-1" id="mwAXA"><span class="mw-linkback-text" id="mwAXE">2</span></a> <a href="#cite_ref-Navarro2001_2-2" id="mwAXI"><span class="mw-linkback-text" id="mwAXM">3</span></a> <a href="#cite_ref-Navarro2001_2-3" id="mwAXQ"><span class="mw-linkback-text" id="mwAXU">4</span></a> <a href="#cite_ref-Navarro2001_2-4" id="mwAXY"><span class="mw-linkback-text" id="mwAXc">5</span></a> <a href="#cite_ref-Navarro2001_2-5" id="mwAXg"><span class="mw-linkback-text" id="mwAXk">6</span></a></span> <span id="mw-reference-text-cite_note-Navarro2001-2" class="mw-reference-text reference-text">Gonzalo Navarro, “A guided tour to approximate string matching”, <i id="mwAXo">ACM Computing Surveys</i>, vol. 33, no. 1, 2001, pp. 31–88, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145/375360.375365" class="external text" id="mwAXs">10.1145/375360.375365</a>.</span></li>
+<li about="#cite_note-WagnerFischer1974-3" id="cite_note-WagnerFischer1974-3" data-mw-footnote-number="3"><span rel="mw:referencedBy" class="mw-cite-backlink" id="mwAXw"><a href="#cite_ref-WagnerFischer1974_3-0" id="mwAX0"><span class="mw-linkback-text" id="mwAX4">1</span></a> <a href="#cite_ref-WagnerFischer1974_3-1" id="mwAX8"><span class="mw-linkback-text" id="mwAYA">2</span></a> <a href="#cite_ref-WagnerFischer1974_3-2" id="mwAYE"><span class="mw-linkback-text" id="mwAYI">3</span></a> <a href="#cite_ref-WagnerFischer1974_3-3" id="mwAYM"><span class="mw-linkback-text" id="mwAYQ">4</span></a> <a href="#cite_ref-WagnerFischer1974_3-4" id="mwAYU"><span class="mw-linkback-text" id="mwAYY">5</span></a></span> <span id="mw-reference-text-cite_note-WagnerFischer1974-3" class="mw-reference-text reference-text">Robert A. Wagner and Michael J. Fischer, “The String-to-String Correction Problem”, <i id="mwAYc">Journal of the ACM</i>, vol. 21, no. 1, 1974, pp. 168–173, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145/321796.321811" class="external text" id="mwAYg">10.1145/321796.321811</a>.</span></li>
+<li about="#cite_note-4" id="cite_note-4" data-mw-footnote-number="4"><span class="mw-cite-backlink" id="mwAYk"><a href="#cite_ref-4" rel="mw:referencedBy" id="mwAYo"><span class="mw-linkback-text" id="mwAYs">↑</span></a></span> <span id="mw-reference-text-cite_note-4" class="mw-reference-text reference-text">Wilbert J. Heeringa, <i id="mwAYw">Measuring Dialect Pronunciation Differences using Levenshtein Distance</i>, PhD thesis, University of Groningen, 2004. <a rel="mw:ExtLink nofollow" href="https://research.rug.nl/en/publications/measuring-dialect-pronunciation-differences-using-levenshtein-dis/" class="external text" id="mwAY0">University of Groningen</a>.</span></li>
+<li about="#cite_note-5" id="cite_note-5" data-mw-footnote-number="5"><span class="mw-cite-backlink" id="mwAY4"><a href="#cite_ref-5" rel="mw:referencedBy" id="mwAY8"><span class="mw-linkback-text" id="mwAZA">↑</span></a></span> <span id="mw-reference-text-cite_note-5" class="mw-reference-text reference-text">Lionel Fontan, Isabelle Ferrané, Jérôme Farinas, Julien Pinquier, and Xavier Aumont, “Using Phonologically Weighted Levenshtein Distances for the Prediction of Microscopic Intelligibility”, <i id="mwAZE">Interspeech 2016</i>, pp. 650–654, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.21437/Interspeech.2016-431" class="external text" id="mwAZI">10.21437/Interspeech.2016-431</a>.</span></li>
+<li about="#cite_note-Berger2021-6" id="cite_note-Berger2021-6" data-mw-footnote-number="6"><span rel="mw:referencedBy" class="mw-cite-backlink" id="mwAZM"><a href="#cite_ref-Berger2021_6-0" id="mwAZQ"><span class="mw-linkback-text" id="mwAZU">1</span></a> <a href="#cite_ref-Berger2021_6-1" id="mwAZY"><span class="mw-linkback-text" id="mwAZc">2</span></a> <a href="#cite_ref-Berger2021_6-2" id="mwAZg"><span class="mw-linkback-text" id="mwAZk">3</span></a></span> <span id="mw-reference-text-cite_note-Berger2021-6" class="mw-reference-text reference-text">Bonnie Berger, Michael S. Waterman, and Yun William Yu, “Levenshtein Distance, Sequence Comparison and Biological Database Search”, <i id="mwAZo">IEEE Transactions on Information Theory</i>, vol. 67, no. 6, 2021, pp. 3287–3294, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109/TIT.2020.2996543" class="external text" id="mwAZs">10.1109/TIT.2020.2996543</a>.</span></li>
+<li about="#cite_note-7" id="cite_note-7" data-mw-footnote-number="7"><span class="mw-cite-backlink" id="mwAZw"><a href="#cite_ref-7" rel="mw:referencedBy" id="mwAZ0"><span class="mw-linkback-text" id="mwAZ4">↑</span></a></span> <span id="mw-reference-text-cite_note-7" class="mw-reference-text reference-text">Matthew A. Jaro, “Advances in Record-Linkage Methodology as Applied to Matching the 1985 Census of Tampa, Florida”, <i id="mwAZ8">Journal of the American Statistical Association</i>, vol. 84, no. 406, 1989, pp. 414–420, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1080/01621459.1989.10478785" class="external text" id="mwAaA">10.1080/01621459.1989.10478785</a>.</span></li>
+<li about="#cite_note-Ukkonen1985-8" id="cite_note-Ukkonen1985-8" data-mw-footnote-number="8"><span rel="mw:referencedBy" class="mw-cite-backlink" id="mwAaE"><a href="#cite_ref-Ukkonen1985_8-0" id="mwAaI"><span class="mw-linkback-text" id="mwAaM">1</span></a> <a href="#cite_ref-Ukkonen1985_8-1" id="mwAaQ"><span class="mw-linkback-text" id="mwAaU">2</span></a> <a href="#cite_ref-Ukkonen1985_8-2" id="mwAaY"><span class="mw-linkback-text" id="mwAac">3</span></a></span> <span id="mw-reference-text-cite_note-Ukkonen1985-8" class="mw-reference-text reference-text">Esko Ukkonen, “Algorithms for approximate string matching”, <i id="mwAag">Information and Control</i>, vol. 64, nos. 1–3, 1985, pp. 100–118, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016/S0019-9958(85)80046-2" class="external text" id="mwAak">10.1016/S0019-9958(85)80046-2</a>.</span></li>
+<li about="#cite_note-9" id="cite_note-9" data-mw-footnote-number="9"><span class="mw-cite-backlink" id="mwAao"><a href="#cite_ref-9" rel="mw:referencedBy" id="mwAas"><span class="mw-linkback-text" id="mwAaw">↑</span></a></span> <span id="mw-reference-text-cite_note-9" class="mw-reference-text reference-text">Daniel S. Hirschberg, “A linear space algorithm for computing maximal common subsequences”, <i id="mwAa0">Communications of the ACM</i>, vol. 18, no. 6, 1975, pp. 341–343, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145/360825.360861" class="external text" id="mwAa4">10.1145/360825.360861</a>.</span></li>
+<li about="#cite_note-Myers1999-10" id="cite_note-Myers1999-10" data-mw-footnote-number="10"><span rel="mw:referencedBy" class="mw-cite-backlink" id="mwAa8"><a href="#cite_ref-Myers1999_10-0" id="mwAbA"><span class="mw-linkback-text" id="mwAbE">1</span></a> <a href="#cite_ref-Myers1999_10-1" id="mwAbI"><span class="mw-linkback-text" id="mwAbM">2</span></a></span> <span id="mw-reference-text-cite_note-Myers1999-10" class="mw-reference-text reference-text">Gene Myers, “A fast bit-vector algorithm for approximate string matching based on dynamic programming”, <i id="mwAbQ">Journal of the ACM</i>, vol. 46, no. 3, 1999, pp. 395–415, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145/316542.316550" class="external text" id="mwAbU">10.1145/316542.316550</a>.</span></li>
+<li about="#cite_note-11" id="cite_note-11" data-mw-footnote-number="11"><span class="mw-cite-backlink" id="mwAbY"><a href="#cite_ref-11" rel="mw:referencedBy" id="mwAbc"><span class="mw-linkback-text" id="mwAbg">↑</span></a></span> <span id="mw-reference-text-cite_note-11" class="mw-reference-text reference-text">Sun Wu, Udi Manber, Gene Myers, and Webb Miller, “An O(NP) sequence comparison algorithm”, <i id="mwAbk">Information Processing Letters</i>, vol. 35, no. 6, 1990, pp. 317–323, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016/0020-0190(90)90035-V" class="external text" id="mwAbo">10.1016/0020-0190(90)90035-V</a>.</span></li>
+<li about="#cite_note-12" id="cite_note-12" data-mw-footnote-number="12"><span class="mw-cite-backlink" id="mwAbs"><a href="#cite_ref-12" rel="mw:referencedBy" id="mwAbw"><span class="mw-linkback-text" id="mwAb0">↑</span></a></span> <span id="mw-reference-text-cite_note-12" class="mw-reference-text reference-text">Klaus U. Schulz and Stoyan Mihov, “Fast String Correction with Levenshtein-Automata”, <i id="mwAb4">International Journal on Document Analysis and Recognition</i>, vol. 5, no. 1, 2002, pp. 67–85, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007/s10032-002-0082-8" class="external text" id="mwAb8">10.1007/s10032-002-0082-8</a>.</span></li>
+<li about="#cite_note-13" id="cite_note-13" data-mw-footnote-number="13"><span class="mw-cite-backlink" id="mwAcA"><a href="#cite_ref-13" rel="mw:referencedBy" id="mwAcE"><span class="mw-linkback-text" id="mwAcI">↑</span></a></span> <span id="mw-reference-text-cite_note-13" class="mw-reference-text reference-text">Alexandr Andoni, Robert Krauthgamer, and Krzysztof Onak, “Polylogarithmic Approximation for Edit Distance and the Asymmetric Query Complexity”, <i id="mwAcM">51st IEEE Symposium on Foundations of Computer Science</i>, 2010, pp. 377–386, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109/FOCS.2010.43" class="external text" id="mwAcQ">10.1109/FOCS.2010.43</a>.</span></li>
+<li about="#cite_note-14" id="cite_note-14" data-mw-footnote-number="14"><span class="mw-cite-backlink" id="mwAcU"><a href="#cite_ref-14" rel="mw:referencedBy" id="mwAcY"><span class="mw-linkback-text" id="mwAcc">↑</span></a></span> <span id="mw-reference-text-cite_note-14" class="mw-reference-text reference-text">Alexandr Andoni and Negev Shekel Nosatzki, “Edit Distance in Near-Linear Time: It's a Constant Factor”, <i id="mwAcg">IEEE Symposium on Foundations of Computer Science</i>, 2020, pp. 990–1001, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109/FOCS46700.2020.00096" class="external text" id="mwAck">10.1109/FOCS46700.2020.00096</a>.</span></li>
+<li about="#cite_note-BackursIndyk2015-15" id="cite_note-BackursIndyk2015-15" data-mw-footnote-number="15"><span rel="mw:referencedBy" class="mw-cite-backlink" id="mwAco"><a href="#cite_ref-BackursIndyk2015_15-0" id="mwAcs"><span class="mw-linkback-text" id="mwAcw">1</span></a> <a href="#cite_ref-BackursIndyk2015_15-1" id="mwAc0"><span class="mw-linkback-text" id="mwAc4">2</span></a></span> <span id="mw-reference-text-cite_note-BackursIndyk2015-15" class="mw-reference-text reference-text">Arturs Backurs and Piotr Indyk, “Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false)”, <i id="mwAc8">Proceedings of the 47th Annual ACM Symposium on Theory of Computing</i>, 2015, pp. 51–58, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145/2746539.2746612" class="external text" id="mwAdA">10.1145/2746539.2746612</a>.</span></li>
+<li about="#cite_note-16" id="cite_note-16" data-mw-footnote-number="16"><span class="mw-cite-backlink" id="mwAdE"><a href="#cite_ref-16" rel="mw:referencedBy" id="mwAdI"><span class="mw-linkback-text" id="mwAdM">↑</span></a></span> <span id="mw-reference-text-cite_note-16" class="mw-reference-text reference-text">C. K. Wong and Ashok K. Chandra, “Bounds for the string editing problem”, <i id="mwAdQ">Journal of the ACM</i>, vol. 23, no. 1, 1976, pp. 13–16, doi:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145/321921.321923" class="external text" id="mwAdU">10.1145/321921.321923</a>.</span></li>
+<li about="#cite_note-UAX29-17" id="cite_note-UAX29-17" data-mw-footnote-number="17"><span class="mw-cite-backlink" id="mwAdY"><a href="#cite_ref-UAX29_17-0" rel="mw:referencedBy" id="mwAdc"><span class="mw-linkback-text" id="mwAdg">↑</span></a></span> <span id="mw-reference-text-cite_note-UAX29-17" class="mw-reference-text reference-text">Unicode Consortium, “Unicode Standard Annex #29: Unicode Text Segmentation”. <a rel="mw:ExtLink nofollow" href="https://www.unicode.org/reports/tr29/" class="external text" id="mwAdk">unicode.org</a>.</span></li>
+<li about="#cite_note-UAX15-18" id="cite_note-UAX15-18" data-mw-footnote-number="18"><span class="mw-cite-backlink" id="mwAdo"><a href="#cite_ref-UAX15_18-0" rel="mw:referencedBy" id="mwAds"><span class="mw-linkback-text" id="mwAdw">↑</span></a></span> <span id="mw-reference-text-cite_note-UAX15-18" class="mw-reference-text reference-text">Unicode Consortium, “Unicode Standard Annex #15: Unicode Normalization Forms”. <a rel="mw:ExtLink nofollow" href="https://www.unicode.org/reports/tr15/" class="external text" id="mwAd0">unicode.org</a>.</span></li>
+</ol></div>
+
+</section><section data-mw-section-id="22" id="mwAd4" aria-labelledby="External_links"><div class="mw-heading mw-heading2"><h2 id="External_links">External links</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Levenshtein_distance&amp;action=edit&amp;section=22" title="Edit section: External links"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+
+<ul id="mwAd8"><li id="mwAeA">Paul E. Black, ed., <a rel="mw:ExtLink nofollow" href="https://xlinux.nist.gov/dads/HTML/Levenshtein.html" class="external text" id="mwAeE">“Levenshtein distance”</a>, <i id="mwAeI">Dictionary of Algorithms and Data Structures</i>, U.S. National Institute of Standards and Technology.</li>
+<li id="mwAeM"><a rel="mw:ExtLink nofollow" href="https://rosettacode.org/wiki/Levenshtein_distance" class="external text" id="mwAeQ">Rosetta Code implementations of Levenshtein distance</a>.</li>
+<li id="mwAeU"><a rel="mw:ExtLink nofollow" href="https://www.levenshtein.net/unicode-and-grapheme-safe-levenshtein" class="external text" id="mwAeY">Unicode and grapheme-safe Levenshtein distance</a> — detailed discussion of Unicode normalization, code points, and grapheme clusters in implementations.</li></ul>
+
+<link rel="mw:PageProp/Category" href="./Category:String_metrics" id="mwAec"/>
+<link rel="mw:PageProp/Category" href="./Category:Dynamic_programming" id="mwAeg"/>
+<link rel="mw:PageProp/Category" href="./Category:Quantitative_linguistics" id="mwAek"/>
+<link rel="mw:PageProp/Category" href="./Category:Computational_linguistics" id="mwAeo"/></section>
+<!-- 
+NewPP limit report
+Parsed by mw‐web.eqiad.main‐5946bdb9c8‐fnm2m
+Cached time: 20260929185930
+Cache expiry: 2592000
+Reduced expiry: false
+Complications: [vary‐revision‐sha1, show‐toc, use‐parsoid]
+CPU time usage: 0.325 seconds
+Real time usage: 1.183 seconds
+Preprocessor visited node count: 418/1000000
+Revision size: 18990/2097152 bytes
+Post‐expand include size: 2046/2097152 bytes
+Template argument size: 683/2097152 bytes
+Highest expansion depth: 12/100
+Expensive parser function count: 2/500
+Unstrip recursion depth: 0/20
+Unstrip post‐expand size: 1914/5000000 bytes
+Lua time usage: 0.022/10.000 seconds
+Lua memory usage: 1719220/52428800 bytes
+Number of Wikibase entities loaded: 0/500
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%  605.069      1 -total
+  7.84%   47.415      1 Template:Short_description
+  4.83%   29.210      2 Template:Pagetype
+  1.69%   10.239      3 Template:Main_other
+  1.50%    9.100      1 Template:SDcat
+  1.47%    8.871      1 Template:Main
+  1.41%    8.532      1 Template:Use_dmy_dates
+  0.95%    5.725      1 Template:DMCA
+  0.73%    4.398      1 Template:Dated_maintenance_category
+  0.51%    3.109      1 Template:FULLROOTPAGENAME
+-->
+
+<!-- Render ID e6682535-bc37-11f1-94e0-6958f2430542 -->
+
+<!-- Saved in parser cache with key enwiki:parsoid-pcache:406418:|#|:idhash:useParsoid=1 and timestamp 20260929185930 and revision id 1375547008. Rendering was triggered because: page_view
+ -->
+
+<!-- Parsoid 0.24.0.0-alpha24 -->
+</div><!--
+Post‐processing cache key enwiki:postproc‐parsoid‐pcache:406418:|#|:idhash:injectTOC=0!postproc=1!skin=vector‐2022!useParsoid=1!visibleLinks=single, generated at 20260929185930
+--><noscript><img src="https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1" alt="" width="1" height="1" style="border: none; position: absolute;"></noscript>
+<div class="printfooter" data-nosnippet="">Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Levenshtein_distance&amp;oldid=1375547008">https://en.wikipedia.org/w/index.php?title=Levenshtein_distance&amp;oldid=1375547008</a>"</div></div>
+					<div id="catlinks" class="catlinks" data-mw-interface=""><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="/wiki/Help:Category" title="Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:String_metrics" title="Category:String metrics">String metrics</a></li><li><a href="/wiki/Category:Dynamic_programming" title="Category:Dynamic programming">Dynamic programming</a></li><li><a href="/wiki/Category:Quantitative_linguistics" title="Category:Quantitative linguistics">Quantitative linguistics</a></li><li><a href="/wiki/Category:Computational_linguistics" title="Category:Computational linguistics">Computational linguistics</a></li></ul></div><div id="mw-hidden-catlinks" class="mw-hidden-catlinks mw-hidden-cats-hidden">Hidden categories: <ul><li><a href="/wiki/Category:Articles_with_short_description" title="Category:Articles with short description">Articles with short description</a></li><li><a href="/wiki/Category:Short_description_is_different_from_Wikidata" title="Category:Short description is different from Wikidata">Short description is different from Wikidata</a></li><li><a href="/wiki/Category:Use_dmy_dates_from_April_2017" title="Category:Use dmy dates from April 2017">Use dmy dates from April 2017</a></li></ul></div></div>
+				</div>
+			</main>
+			
+		</div>
+		<div class="mw-footer-container">
+			<footer id="footer" class="mw-footer" >
+				<ul id="footer-info" class="mw-portlet mw-portlet-footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 18 September 2026, at 13:26<span class="anonymous-show">&#160;(UTC)</span>.</li>
+	<li id="footer-info-renderedwith">Page was rendered with <a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Parsoid" class="extiw" title="mw:Special:MyLanguage/Parsoid">Parsoid</a>.</li>
+	<li id="footer-info-copyright">Text is available under the <a href="/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License" title="Wikipedia:Text of the Creative Commons Attribution-ShareAlike 4.0 International License">Creative Commons Attribution-ShareAlike 4.0 License</a>;
+additional terms may apply. By using this site, you agree to the <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use" class="extiw" title="foundation:Special:MyLanguage/Policy:Terms of Use">Terms of Use</a> and <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy" class="extiw" title="foundation:Special:MyLanguage/Policy:Privacy policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a rel="nofollow" class="external text" href="https://wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+</ul>
+
+				<ul id="footer-places" class="mw-portlet mw-portlet-footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="/wiki/Wikipedia:About">About Wikipedia</a></li>
+	<li id="footer-places-disclaimers"><a href="/wiki/Wikipedia:General_disclaimer">Disclaimers</a></li>
+	<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+	<li id="footer-places-legal-safety-contacts"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Legal:Wikimedia_Foundation_Legal_and_Safety_Contact_Information">Legal &amp; safety contacts</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct">Code of Conduct</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org">Developers</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/en.wikipedia.org">Statistics</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement">Cookie statement</a></li>
+	<li id="footer-places-mobileview"><a href="//en.wikipedia.org/w/index.php?title=Levenshtein_distance&amp;mobileaction=toggle_view_mobile" class="noprint stopMobileRedirectToggle">Mobile view</a></li>
+</ul>
+
+				<ul id="footer-icons" class="mw-portlet mw-portlet-footer-icons noprint">
+	<li id="footer-copyrightico"><a href="https://www.wikimedia.org/" class="cdx-button cdx-button--fake-button cdx-button--size-large cdx-button--fake-button--enabled"><picture><source media="(min-width: 500px)" srcset="/static/images/footer/wikimedia-button.svg" width="84" height="29"><img src="/static/images/footer/wikimedia.svg" width="25" height="25" alt="Wikimedia Foundation" lang="en" loading="lazy"></picture></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/" class="cdx-button cdx-button--fake-button cdx-button--size-large cdx-button--fake-button--enabled"><picture><source media="(min-width: 500px)" srcset="/w/resources/assets/poweredby_mediawiki.svg" width="88" height="31"><img src="/w/resources/assets/mediawiki_compact.svg" alt="Powered by MediaWiki" lang="en" width="25" height="25" loading="lazy"></picture></a></li>
+</ul>
+
+			</footer>
+		</div>
+	</div> 
+</div> 
+<div class="vector-header-container vector-sticky-header-container no-font-mode-scale">
+	<div id="vector-sticky-header" class="vector-sticky-header">
+		<div class="vector-sticky-header-start">
+			<div class="vector-sticky-header-icon-start vector-button-flush-left" aria-hidden="true">
+				<button class="cdx-button cdx-button--weight-quiet cdx-button--icon-only vector-sticky-header-search-toggle" tabindex="-1" data-event-name="ui.vector-sticky-search-form.icon"><span class="vector-icon mw-ui-icon-search mw-ui-icon-wikimedia-search cdx-button__icon"></span>
+
+<span>Search</span>
+			</button>
+		</div>
+			
+		<div role="search" class="vector-search-box-vue  vector-search-box-show-thumbnail vector-search-box">
+			<div class="vector-typeahead-search-container">
+				<div class="cdx-typeahead-search cdx-typeahead-search--show-thumbnail">
+					<form action="/w/index.php" id="vector-sticky-search-form" class="cdx-search-input cdx-search-input--has-end-button">
+						<div  class="cdx-search-input__input-wrapper"  data-search-loc="header-moved">
+							<div class="cdx-text-input cdx-text-input--has-start-icon">
+								<input
+									class="cdx-text-input__input mw-searchInput" autocomplete="off"
+									
+									type="search" name="search" placeholder="Search Wikipedia">
+								<span class="cdx-text-input__icon cdx-text-input__start-icon"></span>
+							</div>
+							<input type="hidden" name="title" value="Special:Search">
+						</div>
+						<button class="cdx-button cdx-search-input__end-button">Search</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="vector-sticky-header-context-bar">
+				<nav aria-label="Contents" class="vector-toc-landmark">
+						
+					<div id="vector-sticky-header-toc" class="vector-dropdown mw-portlet mw-portlet-sticky-header-toc vector-sticky-header-toc vector-button-flush-left"  >
+						<input type="checkbox" id="vector-sticky-header-toc-checkbox" role="button" aria-haspopup="true" data-event-name="ui.dropdown-vector-sticky-header-toc" class="vector-dropdown-checkbox "  aria-label="Toggle the table of contents"   >
+						<label id="vector-sticky-header-toc-label" for="vector-sticky-header-toc-checkbox" class="vector-dropdown-label cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only " aria-hidden="true"  ><span class="vector-icon mw-ui-icon-listBullet mw-ui-icon-wikimedia-listBullet cdx-button__icon"></span>
+
+<span class="vector-dropdown-label-text">Toggle the table of contents</span>
+						</label>
+						<div class="vector-dropdown-content">
+					
+						<div id="vector-sticky-header-toc-unpinned-container" class="vector-unpinned-container">
+						</div>
+					
+						</div>
+					</div>
+			</nav>
+				<div class="vector-sticky-header-context-bar-primary" aria-hidden="true" ><span lang="en" dir="ltr"><span class="mw-page-title-main">Levenshtein distance</span></span></div>
+			</div>
+		</div>
+		<div class="vector-sticky-header-end" aria-hidden="true">
+			<div class="vector-sticky-header-icons">
+				<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-talk-sticky-header" tabindex="-1" data-event-name="talk-sticky-header"><span class="vector-icon mw-ui-icon-speechBubbles mw-ui-icon-wikimedia-speechBubbles cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-subject-sticky-header" tabindex="-1" data-event-name="subject-sticky-header"><span class="vector-icon mw-ui-icon-article mw-ui-icon-wikimedia-article cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-history-sticky-header" tabindex="-1" data-event-name="history-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-history mw-ui-icon-wikimedia-wikimedia-history cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only mw-watchlink" id="ca-watchstar-sticky-header" tabindex="-1" data-event-name="watch-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-star mw-ui-icon-wikimedia-wikimedia-star cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-edit-sticky-header" tabindex="-1" data-event-name="wikitext-edit-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-wikiText mw-ui-icon-wikimedia-wikimedia-wikiText cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-ve-edit-sticky-header" tabindex="-1" data-event-name="ve-edit-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-edit mw-ui-icon-wikimedia-wikimedia-edit cdx-button__icon"></span>
+
+<span></span>
+			</a>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--icon-only" id="ca-viewsource-sticky-header" tabindex="-1" data-event-name="ve-edit-protected-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-editLock mw-ui-icon-wikimedia-wikimedia-editLock cdx-button__icon"></span>
+
+<span></span>
+			</a>
+		</div>
+			<div class="vector-sticky-header-buttons">
+				<button class="cdx-button cdx-button--weight-quiet mw-interlanguage-selector" id="p-lang-btn-sticky-header" tabindex="-1" data-event-name="ui.dropdown-p-lang-btn-sticky-header"><span class="vector-icon mw-ui-icon-wikimedia-language mw-ui-icon-wikimedia-wikimedia-language cdx-button__icon"></span>
+
+<span>40 languages</span>
+			</button>
+			<a href="#" class="cdx-button cdx-button--fake-button cdx-button--fake-button--enabled cdx-button--weight-quiet cdx-button--action-progressive" id="ca-addsection-sticky-header" tabindex="-1" data-event-name="addsection-sticky-header"><span class="vector-icon mw-ui-icon-speechBubbleAdd-progressive mw-ui-icon-wikimedia-speechBubbleAdd-progressive cdx-button__icon"></span>
+
+<span>Add topic</span>
+			</a>
+		</div>
+			<div class="vector-sticky-header-icon-end">
+				<div class="vector-user-links">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="mw-portlet mw-portlet-dock-bottom emptyPortlet" id="p-dock-bottom">
+	<ul>
+		
+	</ul>
+</div>
+<script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgHostname":"mw-web.eqiad.main-75d67bc6d9-5vr6z","wgBackendResponseTime":151,"wgPageParseReport":{"limitreport":{"cputime":"0.325","walltime":"1.183","ppvisitednodes":{"value":418,"limit":1000000},"revisionsize":{"value":18990,"limit":2097152},"postexpandincludesize":{"value":2046,"limit":2097152},"templateargumentsize":{"value":683,"limit":2097152},"expansiondepth":{"value":12,"limit":100},"expensivefunctioncount":{"value":2,"limit":500},"unstrip-depth":{"value":0,"limit":20},"unstrip-size":{"value":1914,"limit":5000000},"entityaccesscount":{"value":0,"limit":500},"timingprofile":["100.00%  605.069      1 -total","  7.84%   47.415      1 Template:Short_description","  4.83%   29.210      2 Template:Pagetype","  1.69%   10.239      3 Template:Main_other","  1.50%    9.100      1 Template:SDcat","  1.47%    8.871      1 Template:Main","  1.41%    8.532      1 Template:Use_dmy_dates","  0.95%    5.725      1 Template:DMCA","  0.73%    4.398      1 Template:Dated_maintenance_category","  0.51%    3.109      1 Template:FULLROOTPAGENAME"]},"scribunto":{"limitreport-timeusage":{"value":"0.022","limit":"10.000"},"limitreport-memusage":{"value":1719220,"limit":52428800}},"cachereport":{"origin":"mw-web.eqiad.main-5946bdb9c8-fnm2m","timestamp":"20260929185930","ttl":2592000,"transientcontent":false}}});});</script>
+<script type="application/ld+json">{"@context":"https:\/\/schema.org","@type":"Article","name":"Levenshtein distance","url":"https:\/\/en.wikipedia.org\/wiki\/Levenshtein_distance","sameAs":"http:\/\/www.wikidata.org\/entity\/Q496939","mainEntity":"http:\/\/www.wikidata.org\/entity\/Q496939","author":{"@type":"Organization","name":"Contributors to Wikimedia projects"},"publisher":{"@type":"Organization","name":"Wikimedia Foundation, Inc.","logo":{"@type":"ImageObject","url":"https:\/\/www.wikimedia.org\/static\/images\/wmf-hor-googpub.png"}},"datePublished":"2003-12-18T04:33:02Z","dateModified":"2026-09-18T13:26:40Z","image":"https:\/\/upload.wikimedia.org\/wikipedia\/commons\/d\/d1\/Levenshtein_distance_animation.gif?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original","headline":"computer science metric for string similarity"}</script>
+</body>
+</html>
