@@ -27,6 +27,15 @@ function countWords(html) {
     .replace(/&[a-z#0-9]+;/gi, ' ');
   return (text.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) || []).length;
 }
+// v1 is English only. A page passes if its lang attribute (when present) is en
+// and common English stopwords make up at least 10% of its words.
+const STOP = new Set('the of and to in is that for with as on are was by this be from or at an it not have'.split(' '));
+function isEnglish(html) {
+  const lang = html.match(/<html[^>]*\blang="?([\w-]+)/i)?.[1];
+  const words = html.replace(/<(script|style|head)\b[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ').toLowerCase().match(/\p{L}+/gu) || [];
+  const share = words.filter(w => STOP.has(w)).length / (words.length || 1);
+  return (!lang || /^en\b/i.test(lang)) && share >= 0.1;
+}
 const bucket = w => w < 2500 ? '1k' : w < 7500 ? '5k' : w < 15000 ? '10k' : '20k';
 
 for (const s of sources) {
@@ -45,11 +54,13 @@ for (const s of sources) {
       console.error('FAILED', s.id, e.message);
       continue;
     }
+    if (!isEnglish(html)) { console.error('NOT ENGLISH, skipped', s.id); continue; }
     mkdirSync(dirname(abs), { recursive: true });
     writeFileSync(abs, html);
     lock[s.id] = { ...lock[s.id], fetchedAt: new Date().toISOString().slice(0, 10) };
   }
-  const sha256 = createHash('sha256').update(html).digest('hex');
+  if (!isEnglish(html)) console.warn('NOT ENGLISH', s.id);
+  const sha256 =createHash('sha256').update(html).digest('hex');
   if (lock[s.id]?.sha256 && lock[s.id].sha256 !== sha256) console.warn('CHANGED', s.id, '(labels in bench/cases may no longer match)');
   const words = countWords(html);
   lock[s.id] = { id: s.id, type: s.type, file, words, bucket: bucket(words), fetchedAt: lock[s.id]?.fetchedAt ?? null, sha256 };
