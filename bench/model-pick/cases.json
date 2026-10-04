@@ -1,0 +1,486 @@
+{
+ "pages": [
+  {
+   "id": "docs-en",
+   "lang": "en",
+   "title": "Relay CLI documentation",
+   "chunks": [
+    "Install the Relay CLI with npm install -g relay-cli. The tool requires Node 18 or newer.",
+    "Run relay login to authenticate. A browser window opens and asks you to approve the session. Tokens are stored in your home directory.",
+    "Project settings live in relay.config.json at the repository root. You can set the region, the build command and the output folder.",
+    "Secrets such as API keys should be added as environment variables. Never commit them to version control.",
+    "Run relay deploy to publish your project. The first deployment usually takes about two minutes.",
+    "If a release breaks production, run relay rollback to restore the previous version. Rollbacks complete within seconds.",
+    "Attach your own domain under Settings, then add the provided CNAME record at your DNS provider. Certificates are issued automatically.",
+    "Static assets are cached at the edge for one hour by default. Use the cache-control header to change the duration.",
+    "Stream live output with relay logs --follow. Logs are retained for seven days.",
+    "The free plan includes 100 GB of bandwidth per month. Additional traffic costs five dollars per 100 GB.",
+    "To close your account, open Billing and choose Delete team. All projects and deployments are removed permanently.",
+    "If a build fails with exit code 137, the process ran out of memory. Reduce parallel jobs or upgrade to a larger build machine."
+   ]
+  },
+  {
+   "id": "news-en",
+   "lang": "en",
+   "title": "City council approves bike lane plan",
+   "chunks": [
+    "The city council voted on Tuesday to approve a 40 million dollar plan to expand protected bike lanes across the downtown area.",
+    "Supporters say the new network will cut traffic injuries and encourage more residents to commute without a car.",
+    "Shop owners on Harbor Street voiced concern that removing parking spaces could reduce foot traffic and hurt sales.",
+    "Mayor Elena Ortiz defended the proposal, pointing to a pilot project last year in which cycling trips rose by 35 percent.",
+    "Construction is scheduled to begin in March and finish within eighteen months, depending on the weather.",
+    "Funding will come from a state transportation grant and a municipal bond that voters approved in 2023.",
+    "Critics from the opposition party argued that the money would be better spent on repairing crumbling roads and bridges.",
+    "Cycling advocates have campaigned for safer streets since a cyclist was killed at the Main Street intersection two years ago.",
+    "The plan also includes new bike-share stations, with electric bicycles available at twenty locations.",
+    "Public transit officials said they would coordinate bus schedules so that routes are not disrupted during construction.",
+    "A public hearing will be held next month, where residents can submit written comments about the final route design.",
+    "Similar projects in Copenhagen and Utrecht have been credited with lowering emissions and improving air quality."
+   ]
+  },
+  {
+   "id": "library-de",
+   "lang": "de",
+   "title": "Stadtbibliothek: Häufige Fragen",
+   "chunks": [
+    "Die Stadtbibliothek ist von Montag bis Freitag von 10 bis 19 Uhr geöffnet. Samstags schließen wir um 16 Uhr.",
+    "Für einen Bibliotheksausweis benötigen Sie einen gültigen Personalausweis und eine Meldebescheinigung.",
+    "Die Jahresgebühr beträgt 20 Euro für Erwachsene. Kinder und Jugendliche unter 18 Jahren zahlen nichts.",
+    "Bücher können für vier Wochen ausgeliehen werden. Danach muss das Medium zurückgegeben oder verlängert werden.",
+    "Die Verlängerung ist online über Ihr Benutzerkonto oder telefonisch möglich. Pro Medium sind zwei Verlängerungen erlaubt.",
+    "Bei verspäteter Rückgabe fällt eine Mahngebühr von 50 Cent pro Tag und Medium an.",
+    "Im Lesesaal im ersten Stock stehen ruhige Arbeitsplätze mit kostenlosem WLAN zur Verfügung.",
+    "Wenn ein Buch verloren geht oder beschädigt wird, müssen Sie den Ersatz bezahlen.",
+    "Jeden zweiten Donnerstag im Monat findet eine Lesung für Kinder statt. Eine Anmeldung ist nicht nötig.",
+    "Die digitale Bibliothek bietet E-Books und Hörbücher, die Sie rund um die Uhr herunterladen können.",
+    "Mit dem Kopierer im Erdgeschoss können Sie Seiten für zehn Cent drucken. Bezahlt wird mit Münzen.",
+    "Eine Kündigung der Mitgliedschaft ist jederzeit schriftlich oder per E-Mail möglich."
+   ]
+  }
+ ],
+ "queries": [
+  {
+   "id": "q1",
+   "page": "docs-en",
+   "chunk": 6,
+   "category": "exact",
+   "query": "CNAME record",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q2",
+   "page": "docs-en",
+   "chunk": 5,
+   "category": "exact",
+   "query": "relay rollback",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q3",
+   "page": "docs-en",
+   "chunk": 3,
+   "category": "exact",
+   "query": "environment variables",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q4",
+   "page": "docs-en",
+   "chunk": 1,
+   "category": "typo",
+   "query": "autentication",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q5",
+   "page": "docs-en",
+   "chunk": 9,
+   "category": "typo",
+   "query": "bandwith",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q6",
+   "page": "docs-en",
+   "chunk": 6,
+   "category": "typo",
+   "query": "certifcates",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q7",
+   "page": "docs-en",
+   "chunk": 0,
+   "category": "variant",
+   "query": "installing",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q8",
+   "page": "docs-en",
+   "chunk": 2,
+   "category": "variant",
+   "query": "configuration file",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q9",
+   "page": "docs-en",
+   "chunk": 7,
+   "category": "variant",
+   "query": "caches",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q10",
+   "page": "docs-en",
+   "chunk": 1,
+   "category": "synonym",
+   "query": "sign in",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q11",
+   "page": "docs-en",
+   "chunk": 5,
+   "category": "synonym",
+   "query": "undo a release",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q12",
+   "page": "docs-en",
+   "chunk": 9,
+   "category": "synonym",
+   "query": "extra traffic charges",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q13",
+   "page": "docs-en",
+   "chunk": 10,
+   "category": "paraphrase",
+   "query": "how to delete my account",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q14",
+   "page": "docs-en",
+   "chunk": 11,
+   "category": "paraphrase",
+   "query": "why did my build get killed",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q15",
+   "page": "docs-en",
+   "chunk": 8,
+   "category": "paraphrase",
+   "query": "how long are old logs kept",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q16",
+   "page": "docs-en",
+   "chunk": 3,
+   "category": "paraphrase",
+   "query": "where do I put my API keys safely",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q17",
+   "page": "news-en",
+   "chunk": 8,
+   "category": "exact",
+   "query": "bike-share stations",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q18",
+   "page": "news-en",
+   "chunk": 2,
+   "category": "exact",
+   "query": "Harbor Street",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q19",
+   "page": "news-en",
+   "chunk": 5,
+   "category": "exact",
+   "query": "state transportation grant",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q20",
+   "page": "news-en",
+   "chunk": 3,
+   "category": "typo",
+   "query": "Ortitz",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q21",
+   "page": "news-en",
+   "chunk": 4,
+   "category": "typo",
+   "query": "contruction",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q22",
+   "page": "news-en",
+   "chunk": 11,
+   "category": "typo",
+   "query": "Copenhagn",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q23",
+   "page": "news-en",
+   "chunk": 0,
+   "category": "variant",
+   "query": "bicycle lanes",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q24",
+   "page": "news-en",
+   "chunk": 7,
+   "category": "variant",
+   "query": "cycle advocate",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q25",
+   "page": "news-en",
+   "chunk": 2,
+   "category": "synonym",
+   "query": "shopkeepers",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q26",
+   "page": "news-en",
+   "chunk": 0,
+   "category": "synonym",
+   "query": "lawmakers approved",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q27",
+   "page": "news-en",
+   "chunk": 8,
+   "category": "synonym",
+   "query": "e-bikes",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q28",
+   "page": "news-en",
+   "chunk": 5,
+   "category": "paraphrase",
+   "query": "who pays for the project",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q29",
+   "page": "news-en",
+   "chunk": 4,
+   "category": "paraphrase",
+   "query": "when will the work be finished",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q30",
+   "page": "news-en",
+   "chunk": 10,
+   "category": "paraphrase",
+   "query": "can the public give feedback",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q31",
+   "page": "news-en",
+   "chunk": 9,
+   "category": "paraphrase",
+   "query": "will buses be affected",
+   "lang": "en",
+   "crossLanguage": false
+  },
+  {
+   "id": "q32",
+   "page": "library-de",
+   "chunk": 6,
+   "category": "exact",
+   "query": "Lesesaal",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q33",
+   "page": "library-de",
+   "chunk": 5,
+   "category": "exact",
+   "query": "Mahngebühr",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q34",
+   "page": "library-de",
+   "chunk": 1,
+   "category": "typo",
+   "query": "Bibliotheksauswies",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q35",
+   "page": "library-de",
+   "chunk": 9,
+   "category": "typo",
+   "query": "Hörbücer",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q36",
+   "page": "library-de",
+   "chunk": 9,
+   "category": "variant",
+   "query": "Hoerbuecher",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q37",
+   "page": "library-de",
+   "chunk": 3,
+   "category": "variant",
+   "query": "ausleihen",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q38",
+   "page": "library-de",
+   "chunk": 11,
+   "category": "synonym",
+   "query": "Abo beenden",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q39",
+   "page": "library-de",
+   "chunk": 3,
+   "category": "synonym",
+   "query": "Leihfrist",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q40",
+   "page": "library-de",
+   "chunk": 2,
+   "category": "synonym",
+   "query": "Kosten pro Jahr",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q41",
+   "page": "library-de",
+   "chunk": 3,
+   "category": "paraphrase",
+   "query": "Wie lange darf ich ein Buch behalten",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q42",
+   "page": "library-de",
+   "chunk": 7,
+   "category": "paraphrase",
+   "query": "Was passiert wenn ich ein Buch kaputt mache",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q43",
+   "page": "library-de",
+   "chunk": 0,
+   "category": "paraphrase",
+   "query": "Wann hat die Bücherei am Wochenende auf",
+   "lang": "de",
+   "crossLanguage": false
+  },
+  {
+   "id": "q44",
+   "page": "library-de",
+   "chunk": 5,
+   "category": "synonym",
+   "query": "late return fee",
+   "lang": "en",
+   "crossLanguage": true
+  },
+  {
+   "id": "q45",
+   "page": "library-de",
+   "chunk": 0,
+   "category": "paraphrase",
+   "query": "opening hours",
+   "lang": "en",
+   "crossLanguage": true
+  },
+  {
+   "id": "q46",
+   "page": "library-de",
+   "chunk": 9,
+   "category": "synonym",
+   "query": "e-books and audiobooks",
+   "lang": "en",
+   "crossLanguage": true
+  },
+  {
+   "id": "q47",
+   "page": "library-de",
+   "chunk": 4,
+   "category": "paraphrase",
+   "query": "how to renew a loan",
+   "lang": "en",
+   "crossLanguage": true
+  }
+ ]
+}
