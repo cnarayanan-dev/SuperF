@@ -19,6 +19,7 @@ Success means:
 - **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
 - **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
 - **Settings panel.** A Settings button in the overlay opens a panel with sliders for chunk length (1 to 6 sentences), overlap (0 to 2, always less than chunk length), score threshold and semantic weight. Chunk length and overlap index the page again when the slider is released. It lists the results with semantic, fuzzy and blended score, and shows the chunk count, indexing time and device, keystroke to result time, model time and model name. Threshold and weight re-rank without a model call. Reset restores the defaults. Settings and the open state of the panel are stored locally.
+- **Index per configuration.** An index is identified by the tab, the chunk length, the overlap and a signature of the page text. The offscreen document keeps up to 4 indexes per tab and drops the least recently used. Going back to a configuration that was already tried on the page embeds nothing, and the panel marks the index as "reused". Closing the tab drops all its indexes. Indexes are not kept across page loads.
 - **Shortcut**: Cmd+Shift+K for v1 (Ctrl+Shift+K on Windows and Linux). Cmd+Shift+F and Cmd+Shift+J were tried first but are blocked in Chrome, so they were dropped.
 - **Model for v1**: `Xenova/all-MiniLM-L6-v2`.
 - **Model weights are bundled** in the extension (decided). `npm run fetch-model` downloads them from Hugging Face once at build time. No download at runtime, no host permission, works offline from the first use.
@@ -111,7 +112,7 @@ Use it:
 
 After a code change, run `npm run build` again, click the reload icon on the extension card in `chrome://extensions`, and reload the page.
 
-Tests: `npm run typecheck`, `npm test` (Node unit tests for the chunking function) and `npm run smoke` (run `npx playwright install chromium` once before the smoke test).
+Tests: `npm run typecheck`, `npm test` (Node unit tests for chunking and the index cache) and `npm run smoke` (run `npx playwright install chromium` once before the smoke test).
 
 ## Proposed repo structure
 

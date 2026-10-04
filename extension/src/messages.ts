@@ -11,3 +11,6 @@ export type Envelope = Request & { target: 'bg' | 'offscreen'; tabId?: number };
 export interface IndexResponse { ok: true; ms: number; device: string }
 export interface QueryResponse { scores: number[]; ms: number }
 export interface ErrorResponse { error: string }
+
+// The offscreen document keeps a few indexes per tab and drops the least recently used.
+export const INDEX_NOT_FOUND = 'index not found';

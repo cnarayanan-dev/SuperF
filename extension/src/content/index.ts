@@ -1,8 +1,9 @@
 // Content script: overlay UI, search orchestration and highlighting.
 import { fuzzyMatch, tokenize } from '../search/fuzzy.ts';
 import { clampOverlap, toRanges, type SentenceSpan } from '../search/chunks.ts';
+import { lruGet, lruSet, MAX_INDEXES, textSignature } from '../search/lru.ts';
 import { hybridScores, isShown } from '../search/rank.ts';
-import type { ErrorResponse, IndexResponse, QueryResponse, Request } from '../messages.ts';
+import { INDEX_NOT_FOUND, type ErrorResponse, type IndexResponse, type QueryResponse, type Request } from '../messages.ts';
 import { MODEL } from '../model.ts';
 import { buildChunks, extractBlocks, toRange, type Block, type Chunk } from './dom.ts';
 import { OVERLAY_CSS, OVERLAY_HTML, PAGE_CSS } from './ui.ts';
@@ -11,6 +12,8 @@ interface Settings { threshold: number; weight: number; chunkLen: number; overla
 type SliderKey = 'threshold' | 'weight' | 'chunkLen' | 'overlap';
 // These change the chunks, so the page is indexed again when the slider is released.
 const CHUNK_KEYS: SliderKey[] = ['chunkLen', 'overlap'];
+// The index of one configuration on one page text, held as vectors in the offscreen document.
+interface Index { id: string; key: string; done: Promise<void>; ms: number; device: string; ready: boolean; reused: boolean }
 interface Result {
   ranges: SentenceSpan[]; // one per paragraph the highlight touches
   chunk: number;
@@ -75,7 +78,9 @@ async function init(): Promise<() => void> {
   let timer = 0;
   let typedAt = 0;
   let busy = false; // a search is waiting for the debounce or the model
-  let index: { id: string; sig: string; done: Promise<void>; ms: number; device: string; ready: boolean } | null = null;
+  let pageSig = '';
+  let index: Index | null = null; // the one in use
+  const indexes = new Map<string, Index>(); // by configuration and page text, least recently used first
   // Scores of the last answered query, kept so the threshold and weight sliders re-rank without a model call.
   let last: { semantic: number[]; fuzzy: number[]; modelMs: number; tookMs: number } | null = null;
 
@@ -109,7 +114,7 @@ async function init(): Promise<() => void> {
     if (!settings.panel) return;
     const ms = (n: number) => `${n.toFixed(0)} ms`;
     $('st-chunks').textContent = String(chunks.length);
-    $('st-index').textContent = index?.ready ? `${ms(index.ms)} (${index.device})` : '…';
+    $('st-index').textContent = index?.ready ? `${ms(index.ms)} (${index.device})${index.reused ? ', reused' : ''}` : '…';
     $('st-latency').textContent = last ? ms(last.tookMs) : '–';
     $('st-model-ms').textContent = last ? ms(last.modelMs) : '–';
     listEl.replaceChildren();
@@ -133,17 +138,26 @@ async function init(): Promise<() => void> {
 
   // ---------- semantic search ----------
   function ensureIndex(): Promise<void> {
-    const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${settings.chunkLen}:${settings.overlap}`;
-    if (index?.sig === sig) return index.done;
-    const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0, device: '', ready: false };
+    // Everything that changes the chunks is part of the key. Highlight and ranking settings are not.
+    const key = `${settings.chunkLen}:${settings.overlap}|${pageSig}`;
+    const known = lruGet(indexes, key);
+    if (known) {
+      // A configuration that was already tried on this page text comes back without embedding anything.
+      if (known !== index) known.reused = true;
+      index = known;
+      return known.done;
+    }
+    const mine: Index = { id: crypto.randomUUID(), key, done: Promise.resolve(), ms: 0, device: '', ready: false, reused: false };
     index = mine;
+    lruSet(indexes, key, mine, MAX_INDEXES);
+    const forget = () => { if (indexes.get(key) === mine) indexes.delete(key); };
     const texts = chunks.map((c) => c.text);
     // Batches of similar length waste less time on padding.
     const order = texts.map((_, i) => i).sort((a, b) => texts[a].length - texts[b].length);
     mine.done = (async () => {
       const t0 = performance.now();
       for (let i = 0; i < order.length; i += BATCH) {
-        if (index !== mine) return; // superseded by a newer index
+        if (index !== mine) return forget(); // superseded while incomplete, so it cannot be reused
         statusEl.textContent = 'Indexing…';
         const ids = order.slice(i, i + BATCH);
         const r = await send<IndexResponse>({ type: 'index', indexId: mine.id, ids, texts: ids.map((id) => texts[id]) });
@@ -156,7 +170,7 @@ async function init(): Promise<() => void> {
       if (!input.value.trim()) statusEl.textContent = `Indexed ${texts.length} chunks in ${mine.ms.toFixed(0)} ms (${mine.device})`;
       renderPanel();
     })();
-    mine.done.catch(() => { if (index === mine) index = null; });
+    mine.done.catch(() => { forget(); if (index === mine) index = null; });
     return mine.done;
   }
 
@@ -180,8 +194,17 @@ async function init(): Promise<() => void> {
       await ensureIndex();
       if (mySeq !== seq || !index) return;
       statusEl.textContent = 'Searching…';
-      const r = await send<QueryResponse>({ type: 'query', indexId: index.id, query });
+      let r = await send<QueryResponse>({ type: 'query', indexId: index.id, query });
       if (mySeq !== seq) return; // the user kept typing
+      if ('error' in r && r.error === INDEX_NOT_FOUND) {
+        // The offscreen document no longer has this index. Build it again, once.
+        indexes.delete(index.key);
+        index = null;
+        await ensureIndex();
+        if (mySeq !== seq || !index) return;
+        r = await send<QueryResponse>({ type: 'query', indexId: (index as Index).id, query });
+        if (mySeq !== seq) return;
+      }
       if ('error' in r) throw new Error(r.error);
       const qt = tokenize(query).map((t) => t.t);
       const caches = qt.map(() => new Map<string, number>());
@@ -216,6 +239,7 @@ async function init(): Promise<() => void> {
 
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
+    pageSig = textSignature(blocks.map((b) => b.text));
     chunks = buildChunks(blocks, settings.chunkLen, settings.overlap);
     // Results and scores point into the old chunks.
     results = [];

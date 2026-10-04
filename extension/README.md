@@ -29,7 +29,7 @@ The model is fetched once at build time and bundled. The extension itself never 
 npx playwright install chromium   # once
 npm run build && npm run smoke    # add -- --headed to watch
 npm run typecheck
-npm test                          # unit tests for the chunking function
+npm test                          # unit tests for chunking and the index cache
 ```
 
 ## Layout

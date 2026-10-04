@@ -146,6 +146,39 @@ try {
   assert.deepEqual([await valueOf('chunkLen'), await valueOf('overlap')], ['2', '0']);
   assert.equal(await chunkCount(), atDefault);
 
+  // A configuration that was already tried on this page comes back without indexing again.
+  const indexStat = async () => { await settled(); return ui('#st-index').textContent(); };
+  const setChunkLen = async (n) => { await slider('chunkLen').fill(String(n)); return indexStat(); };
+  const firstTime = await setChunkLen(2);
+  assert.doesNotMatch(firstTime, /reused/);
+  assert.doesNotMatch(await setChunkLen(4), /reused/, 'a new configuration is indexed');
+  assert.notEqual(await chunkCount(), atDefault);
+  assert.equal(await setChunkLen(2), `${firstTime}, reused`, 'back at chunk length 2 the first index is reused');
+  assert.equal(await chunkCount(), atDefault);
+  assert.match(await currentText(), /rollback/i, 'the query is searched again on the reused index');
+  assert.match(await setChunkLen(4), /reused/, 'and so is the index for chunk length 4');
+  console.log(`switching 2 -> 4 -> 2: ${firstTime} -> ${await setChunkLen(2)}`);
+
+  // A change to the page text leads to a new index. The old text finds its index again.
+  await input.press('Escape');
+  await page.evaluate(() => document.body.insertAdjacentHTML('beforeend', '<p id="added">Zebras are not mentioned anywhere else.</p>'));
+  await toggle();
+  assert.doesNotMatch(await indexStat(), /reused/, 'changed page text is indexed');
+  assert.equal(await chunkCount(), atDefault + 1);
+  await check('new text', 'zebras', /Zebras/);
+  await input.press('Escape');
+  await page.evaluate(() => document.getElementById('added').remove());
+  await toggle();
+  assert.match(await indexStat(), /reused/, 'the earlier page text still has its index');
+  await check('exact', 'rollback', /rollback/i);
+
+  // Only a few indexes are kept per tab. The least recently used one is dropped.
+  for (const n of [1, 3, 5, 6]) await setChunkLen(n);
+  assert.doesNotMatch(await setChunkLen(2), /reused/, 'after four other configurations chunk length 2 is indexed again');
+  assert.match(await setChunkLen(6), /reused/, 'the most recent ones are kept');
+  await ui('#reset').click();
+  assert.match(await indexStat(), /reused/);
+
   await check('paraphrase', 'how to delete my account', /close your account/);
   await check('paraphrase', 'why did my build get killed', /ran out of memory/);
   await check('paraphrase', 'where do I put my API keys safely', /environment variables/);
