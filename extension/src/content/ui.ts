@@ -23,6 +23,8 @@ export const OVERLAY_HTML = `
     <label>Semantic weight <input type="range" name="weight" min="0" max="1" step="0.05"><output></output></label>
     <label>Chunk length <input type="range" name="chunkLength" min="1" max="6" step="1"><output></output></label>
     <label>Overlap <input type="range" name="overlap" min="0" max="2" step="1"><output></output></label>
+    <label class="check"><input type="checkbox" id="cross"> Chunks may cross paragraphs</label>
+    <label>Highlight length <input type="range" name="highlightLength" min="1" max="3" step="1"><output></output></label>
     <div id="stats"></div>
     <ol id="list"></ol>
     <div class="row">
@@ -62,6 +64,7 @@ button:hover { background: rgba(128, 128, 128, .18); }
 #stats { margin-top: 8px; color: #656d76; font-size: 12px; white-space: pre-line; }
 #model { flex: 1; color: #656d76; font-size: 12px; }
 label { display: grid; grid-template-columns: 120px 1fr 36px; align-items: center; gap: 6px; }
+label.check { display: flex; margin: 2px 0; }
 output { text-align: right; font-variant-numeric: tabular-nums; }
 #list { margin: 8px 0 0; padding: 0; list-style: none; max-height: 240px; overflow: auto; }
 #list li { padding: 3px 4px; border-radius: 4px; cursor: pointer; font-size: 12px; }

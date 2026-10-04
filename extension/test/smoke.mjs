@@ -36,9 +36,15 @@ const panel = page.locator('#semantic-find-host #panel');
 const settingsButton = page.locator('#semantic-find-host #settings');
 const items = page.locator('#semantic-find-host #list li');
 const currentText = () => page.evaluate(() => [...CSS.highlights.get('sf-current') ?? []].map((r) => r.toString()).join(' | '));
+// The answer is in, and so is the second model call that picks the highlight inside a long chunk.
+const answered = () => page.waitForFunction(() => {
+  const root = document.querySelector('#semantic-find-host').shadowRoot;
+  return !/Searching|Indexing/.test(root.getElementById('status').textContent) && !root.getElementById('stats').textContent.includes('by sentence…');
+});
+const sentenceCount = (text) => (text.match(/[.!?](?=\s|$)/g) ?? []).length;
 const check = async (label, query, expected) => {
   await input.fill(query);
-  await page.waitForFunction(() => !/Searching|Indexing/.test(document.querySelector('#semantic-find-host').shadowRoot.getElementById('status').textContent));
+  await answered();
   const got = await currentText();
   console.log(`${label.padEnd(10)} "${query}" -> ${await count.textContent() || '0'}  ${JSON.stringify(got.slice(0, 80))}  [${await status.textContent()}]`);
   if (expected === null) assert.equal(got, '', `${label}: expected no result`);
@@ -180,6 +186,144 @@ try {
   assert.equal(await panel.locator('input[name=overlap]').inputValue(), '0');
   assert.equal(await indexed(), twoSentences, 'Reset restores the chunk count');
 
+  // A configuration that was already tried on this page comes back without indexing again.
+  const slider = (name) => panel.locator(`input[name=${name}]`);
+  const statsLine = async (start) => (await panel.locator('#stats').textContent()).split('\n').find((line) => line.includes(start)) ?? '';
+  const indexLine = async () => { await indexed(); return statsLine('chunks'); };
+  const setChunkLength = async (n) => { await slider('chunkLength').fill(String(n)); return indexLine(); };
+  await check('exact', 'rollback', /rollback/i);
+  const firstTime = await setChunkLength(2);
+  assert.doesNotMatch(firstTime, /reused/);
+  assert.doesNotMatch(await setChunkLength(4), /reused/, 'a new configuration is indexed');
+  assert.notEqual(await indexed(), twoSentences);
+  assert.equal(await setChunkLength(2), `${firstTime}, reused`, 'back at chunk length 2 the first index is reused');
+  assert.match(await currentText(), /rollback/i, 'the query is searched again on the reused index');
+  assert.match(await setChunkLength(4), /reused/, 'and so is the index for chunk length 4');
+  console.log(`switching 2 -> 4 -> 2: ${firstTime} -> ${await setChunkLength(2)}`);
+
+  // A change to the page text leads to a new index. The old text finds its index again.
+  await input.press('Escape');
+  await page.evaluate(() => document.body.insertAdjacentHTML('beforeend', '<p id="added">Zebras are not mentioned anywhere else.</p>'));
+  await toggle();
+  assert.doesNotMatch(await indexLine(), /reused/, 'changed page text is indexed');
+  assert.equal(await indexed(), twoSentences + 1);
+  await check('new text', 'zebras', /Zebras/);
+  await input.press('Escape');
+  await page.evaluate(() => document.getElementById('added').remove());
+  await toggle();
+  assert.match(await indexLine(), /reused/, 'the earlier page text still has its index');
+  await check('exact', 'rollback', /rollback/i);
+
+  // Highlight length is separate from chunk length. A chunk no longer than the highlight is marked whole.
+  assert.equal(await slider('highlightLength').inputValue(), '2');
+  await check('whole', 'how do I get HTTPS for my domain', /certificate is issued automatically/);
+  assert.equal(await statsLine('Highlight'), 'Highlight: whole chunk, no model call');
+  await setChunkLength(1);
+  await check('whole', 'rollback', /rollback/i);
+  assert.equal(await statsLine('Highlight'), 'Highlight: whole chunk, no model call');
+
+  // Inside a longer chunk a second model call picks the sentences that answer the query.
+  await setChunkLength(4);
+  await check('pick 2', 'how do I get HTTPS for my domain', /certificate is issued automatically/);
+  assert.ok(sentenceCount(await currentText()) <= 2, 'at most 2 sentences are highlighted');
+  assert.match(await statsLine('Highlight'), /^Highlight: by sentence, model \d+ ms, \d+ ms after keystroke$/);
+  console.log(`${await statsLine('Highlight')} (first query, sentences are embedded)`);
+  await check('pick 2', 'where is the TLS cert coming from', /certificate is issued automatically/);
+  console.log(`${await statsLine('Highlight')} (later query, sentence vectors are kept)`);
+
+  // Changing the highlight length keeps the index and the result order, and only redoes the highlights.
+  const [indexBefore, orderBefore] = [await indexLine(), await items.allTextContents()];
+  await slider('highlightLength').fill('1');
+  await answered();
+  assert.equal(sentenceCount(await currentText()), 1);
+  assert.match(await currentText(), /certificate is issued automatically/);
+  await slider('highlightLength').fill('3');
+  await answered();
+  assert.equal(sentenceCount(await currentText()), 3);
+  assert.deepEqual([await indexLine(), await items.allTextContents()], [indexBefore, orderBefore]);
+  await slider('highlightLength').fill('2');
+
+  // A late answer to the second call of an older query is dropped. The next query is typed at the
+  // moment the second call starts, and 100 ms later its answer has not narrowed the old highlight.
+  const typedDuringSecondCall = shadowEval((root, next) => new Promise((resolve, reject) => {
+    const stats = root.getElementById('stats');
+    const seen = new MutationObserver(() => {
+      if (!stats.textContent.includes('by sentence…')) return;
+      seen.disconnect();
+      const el = root.getElementById('q');
+      el.value = next;
+      el.dispatchEvent(new Event('input'));
+      setTimeout(() => resolve([...CSS.highlights.get('sf-current') ?? []].map((range) => range.cloneContents().textContent).join(' ')), 100);
+    });
+    seen.observe(stats, { childList: true, characterData: true, subtree: true });
+    setTimeout(() => reject(new Error('the second model call never started')), 10000);
+  }), 'where are my login tokens kept');
+  await input.fill('how do I get HTTPS for my domain');
+  const oldHighlight = await typedDuringSecondCall;
+  assert.match(oldHighlight, /certificate is issued automatically/);
+  assert.ok(sentenceCount(oldHighlight) > 2, 'the older query keeps its whole chunk highlighted');
+  await check('stale 2', 'where are my login tokens kept', /Tokens are stored/);
+  assert.ok(sentenceCount(await currentText()) <= 2);
+  await page.waitForTimeout(400);
+  assert.match(await currentText(), /Tokens are stored/, 'a late highlight for the older query is dropped');
+
+  await slider('highlightLength').fill('3');
+  await panel.locator('#reset').click();
+  assert.equal(await slider('highlightLength').inputValue(), '2', 'Reset restores highlight length 2');
+  await check('exact', 'rollback', /rollback/i);
+
+  // Chunks may cross paragraph borders. The checkbox is off by default.
+  const cross = panel.locator('#cross');
+  assert.equal(await cross.isChecked(), false);
+  await setChunkLength(4);
+  const within = await indexed();
+  await cross.check();
+  assert.doesNotMatch(await indexLine(), /reused/, 'crossing is part of the configuration');
+  const crossing = await indexed();
+  assert.ok(crossing < within, `crossing gives fewer chunks (${crossing}) than staying inside paragraphs (${within})`);
+
+  // A highlight that spans two paragraphs is drawn in both, and scrolling goes to its start.
+  await slider('highlightLength').fill('3');
+  await check('2 paras', 'rollback', /rollback/i);
+  const spanning = await page.evaluate(() => [...CSS.highlights.get('sf-current')].map((r) => {
+    const el = r.startContainer.parentElement.closest('p, h1, h2, nav');
+    const box = r.getBoundingClientRect();
+    return { same: el === r.endContainer.parentElement.closest('p, h1, h2, nav'), index: [...document.querySelectorAll('p, h1, h2, nav')].indexOf(el), visible: box.top >= 0 && box.bottom <= innerHeight };
+  }));
+  assert.ok(spanning.length >= 2, 'the highlight has one range per paragraph');
+  assert.ok(spanning.every((r) => r.same), 'each range stays inside its paragraph');
+  assert.equal(new Set(spanning.map((r) => r.index)).size, spanning.length, 'the ranges are in different paragraphs');
+  assert.ok(spanning[0].visible, 'the start of the highlight is scrolled into view');
+  assert.equal(sentenceCount((await currentText()).replaceAll(' | ', ' ')), 3);
+
+  // Highlight picking by sentence works inside a chunk that covers several paragraphs.
+  await slider('highlightLength').fill('2');
+  await check('pick x', 'rollback', /rollback/i);
+  assert.equal(await currentText(), 'If a release breaks production, run relay rollback to restore the previous version. Rollbacks complete within seconds.', 'the two sentences on rollback are picked out of a chunk that covers two paragraphs');
+  assert.match(await statsLine('Highlight'), /^Highlight: by sentence/);
+
+  // Off and on again: both indexes are still there.
+  await cross.uncheck();
+  assert.match(await indexLine(), /reused/);
+  assert.equal(await indexed(), within, 'with the checkbox off the chunks are as before');
+  await cross.check();
+  assert.match(await indexLine(), /reused/);
+  assert.equal(await indexed(), crossing);
+  await panel.locator('#reset').click();
+  assert.equal(await cross.isChecked(), false, 'Reset turns crossing off');
+  assert.equal((await sw.evaluate(() => chrome.storage.local.get('settings'))).settings.cross, false);
+  await check('exact', 'rollback', /rollback/i);
+
+  // Only a few indexes are kept per tab. The least recently used one is dropped.
+  await setChunkLength(1);
+  await setChunkLength(3);
+  await setChunkLength(5);
+  await setChunkLength(6);
+  assert.doesNotMatch(await setChunkLength(2), /reused/, 'after four other configurations chunk length 2 is indexed again');
+  assert.match(await setChunkLength(6), /reused/, 'the most recent ones are kept');
+  await panel.locator('#reset').click();
+  assert.match(await indexLine(), /reused/);
+
   await check('paraphrase', 'how to delete my account', /close your account/);
   await check('paraphrase', 'why did my build get killed', /ran out of memory/);
   await check('paraphrase', 'where do I put my API keys safely', /environment variables/);
@@ -225,6 +369,9 @@ try {
   assert.equal(await page.locator('#semantic-find-host').isVisible(), false);
   assert.equal(await page.evaluate(() => CSS.highlights.size), 0);
   console.log('\nsmoke test passed');
+} catch (e) {
+  console.log('overlay state:', await shadowEval((root) => ({ status: root.getElementById('status').textContent, stats: root.getElementById('stats').textContent, query: root.getElementById('q').value })).catch(() => 'not available'));
+  throw e;
 } finally {
   await ctx.close();
   server.close();

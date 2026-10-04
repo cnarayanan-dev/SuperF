@@ -1,23 +1,44 @@
 // Content script: overlay UI, search orchestration and highlighting.
 import { fuzzyMatch, tokenize } from '../search/fuzzy.ts';
-import { chunkRanges, clampOverlap } from '../search/chunks.ts';
+import { bestWindow, chunkRanges, clampOverlap } from '../search/chunks.ts';
+import { lruGet, lruSet, MAX_INDEXES, textSignature } from '../search/lru.ts';
 import { hybridScores, isShown } from '../search/rank.ts';
-import type { ErrorResponse, IndexResponse, QueryResponse, Request } from '../messages.ts';
+import { INDEX_NOT_FOUND, type ErrorResponse, type IndexResponse, type QueryResponse, type Request, type SentencesResponse } from '../messages.ts';
 import { MODEL } from '../model.ts';
 import { buildChunks, extractBlocks, toRange, type Block, type Chunk } from './dom.ts';
 import { OVERLAY_CSS, OVERLAY_HTML, PAGE_CSS } from './ui.ts';
 
-interface Settings { threshold: number; weight: number; chunkLength: number; overlap: number; panel: boolean }
-type SliderKey = 'threshold' | 'weight' | 'chunkLength' | 'overlap';
+interface Settings {
+  threshold: number;
+  weight: number;
+  chunkLength: number;
+  overlap: number;
+  cross: boolean; // chunks may cross paragraph borders
+  highlightLength: number;
+  panel: boolean;
+}
+type SliderKey = 'threshold' | 'weight' | 'chunkLength' | 'overlap' | 'highlightLength';
+// The index of one chunk configuration on one page text, held as vectors in the offscreen document.
+interface Index { id: string; key: string; done: Promise<void>; ms: number; device: string; ready: boolean; reused: boolean }
+// The scores of one answered query on the index in use.
+interface Answer {
+  query: string;
+  semantic: number[];
+  fuzzy: number[];
+  tookMs: number; // keystroke to result
+  modelMs: number;
+  sentences: Map<number, number[]>; // semantic score per sentence, for chunks longer than the highlight
+  asked: Set<number>; // chunks whose sentence scores are requested or in
+  highlight: { modelMs: number; tookMs: number } | 'pending' | null; // the second model call, if one was needed
+}
 interface Result {
-  ranges: [block: number, start: number, end: number][];
   chunk: number;
   fuzzy: number;
   semantic: number;
   hybrid: number;
 }
 
-const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, chunkLength: 2, overlap: 0, panel: false };
+const DEFAULTS: Settings = { threshold: MODEL.defaultThreshold, weight: 0.7, chunkLength: 2, overlap: 0, cross: false, highlightLength: 2, panel: false };
 const DEBOUNCE_MS = 150;
 const BATCH = 32;
 const MAX_RESULTS = 10;
@@ -36,6 +57,8 @@ function loadSettings(stored: Record<string, unknown> | null | undefined): Setti
     weight: within(pick('weight'), 0, 1),
     chunkLength,
     overlap: clampOverlap(chunkLength, within(Math.round(pick('overlap')), 0, 2)),
+    cross: pick('cross'),
+    highlightLength: within(Math.round(pick('highlightLength')), 1, 3),
     panel: pick('panel'),
   };
 }
@@ -72,6 +95,7 @@ async function init(): Promise<() => void> {
   const countEl = $('count'), statusEl = $('status'), panelEl = $('panel'), listEl = $('list');
   const settingsButton = $('settings'), statsEl = $('stats');
   const sliders = [...shadow.querySelectorAll<HTMLInputElement>('input[type=range]')];
+  const crossEl = $<HTMLInputElement>('cross');
 
   // ---------- state ----------
   let blocks: Block[] = [];
@@ -81,14 +105,18 @@ async function init(): Promise<() => void> {
   let seq = 0; // bumped on every new search, stale async answers are dropped
   let timer = 0;
   let pending = false; // a search is waiting for the debounce or the model
-  let chunked = ''; // chunk length and overlap the chunks were built with
+  let chunked = ''; // chunk length, overlap and crossing the chunks were built with
+  let indexKey = ''; // identifies the chunks: what they were built with, plus a signature of the page text
   let typedAt = 0;
-  let index: { id: string; sig: string; done: Promise<void>; ms: number; device: string; ready: boolean } | null = null;
+  let index: Index | null = null; // the one in use
+  const indexes = new Map<string, Index>(); // by index key, least recently used first
   // The last model answer. Threshold and weight changes re-rank it without a model call.
-  let answer: { semantic: number[]; fuzzy: number[]; tookMs: number; modelMs: number } | null = null;
+  let answer: Answer | null = null;
 
   const send = <T>(req: Request) =>
     chrome.runtime.sendMessage({ ...req, target: 'bg' }) as Promise<T | ErrorResponse>;
+  // Indexes of an earlier page load in this tab cannot be reached any more.
+  void send({ type: 'drop' }).catch(() => {});
 
   // ---------- highlighting ----------
   function clearHighlights(): void {
@@ -96,12 +124,21 @@ async function init(): Promise<() => void> {
     CSS.highlights.delete('sf-current');
   }
 
+  // The part of a result that is marked, as one range per paragraph it touches. A chunk longer than the
+  // highlight length is marked whole until its sentence scores are in, then the best run of sentences is.
+  function highlightOf(r: Result): [block: number, start: number, end: number][] {
+    const { spans } = chunks[r.chunk];
+    const scores = answer?.sentences.get(r.chunk);
+    if (spans.length <= settings.highlightLength || !scores) return chunkRanges(spans);
+    return chunkRanges(spans.slice(...bestWindow(scores, settings.highlightLength)));
+  }
+
   function render(scroll = true): void {
     clearHighlights();
     countEl.textContent = results.length ? `${current + 1}/${results.length}` : '';
     const all: Range[] = [];
     results.forEach((r, i) => {
-      const ranges = r.ranges.map(([b, s, e]) => toRange(blocks[b], s, e));
+      const ranges = highlightOf(r).map(([b, s, e]) => toRange(blocks[b], s, e));
       if (i !== current) return void all.push(...ranges);
       const cur = new Highlight(...ranges);
       cur.priority = 1;
@@ -112,12 +149,26 @@ async function init(): Promise<() => void> {
     renderPanel();
   }
 
+  // How the highlights of the shown results were picked, as a line for the settings panel.
+  function highlightStat(): string {
+    if (!results.length) return '';
+    const picked = answer?.highlight;
+    const long = results.some((r) => chunks[r.chunk].spans.length > settings.highlightLength);
+    if (!long) return '\nHighlight: whole chunk, no model call';
+    if (picked === 'pending') return '\nHighlight: by sentence…';
+    if (!picked) return '\nHighlight: whole chunk';
+    const after = picked.tookMs ? `, ${picked.tookMs.toFixed(0)} ms after keystroke` : '';
+    return `\nHighlight: by sentence, model ${picked.modelMs.toFixed(0)} ms${after}`;
+  }
+
   // The result list and the numbers in the settings panel. Costs nothing while the panel is closed.
   function renderPanel(): void {
     if (!settings.panel) return;
-    const indexed = index?.ready ? `, indexed in ${index.ms.toFixed(0)} ms (${index.device})` : '';
-    const timing = answer ? `\nResult in ${answer.tookMs.toFixed(0)} ms, model ${answer.modelMs.toFixed(0)} ms` : '';
-    statsEl.textContent = `${chunks.length} chunks${indexed}${timing}`;
+    const ms = (n: number) => `${n.toFixed(0)} ms`;
+    const reused = index?.reused ? ', reused' : '';
+    const indexed = index?.ready ? `, indexed in ${ms(index.ms)} (${index.device})${reused}` : '';
+    const timing = answer ? `\nResult in ${ms(answer.tookMs)}, model ${ms(answer.modelMs)}` : '';
+    statsEl.textContent = `${chunks.length} chunks${indexed}${timing}${highlightStat()}`;
     listEl.replaceChildren();
     results.forEach((r, i) => {
       const li = document.createElement('li');
@@ -139,17 +190,30 @@ async function init(): Promise<() => void> {
 
   // ---------- semantic search ----------
   function ensureIndex(): Promise<void> {
-    const sig = `${chunks.length}:${chunks.reduce((n, c) => n + c.text.length, 0)}:${chunked}`;
-    if (index?.sig === sig) return index.done;
-    const mine = { id: crypto.randomUUID(), sig, done: Promise.resolve(), ms: 0, device: '', ready: false };
+    const key = indexKey;
+    const known = lruGet(indexes, key);
+    if (known) {
+      // A configuration that was already tried on this page text comes back without embedding anything.
+      if (known !== index) known.reused = known.ready;
+      index = known;
+      return known.done;
+    }
+    const mine: Index = { id: crypto.randomUUID(), key, done: Promise.resolve(), ms: 0, device: '', ready: false, reused: false };
     index = mine;
+    // The offscreen document keeps exactly the indexes this map holds.
+    const forgetOffscreen = (x: Index) => void send({ type: 'forget', indexId: x.id }).catch(() => {});
+    lruSet(indexes, key, mine, MAX_INDEXES).forEach(forgetOffscreen);
+    const forget = () => {
+      if (indexes.get(key) === mine) indexes.delete(key);
+      forgetOffscreen(mine);
+    };
     const texts = chunks.map((c) => c.text);
     // Batches of similar length waste less time on padding.
     const order = texts.map((_, i) => i).sort((a, b) => texts[a].length - texts[b].length);
     mine.done = (async () => {
       const t0 = performance.now();
       for (let i = 0; i < order.length; i += BATCH) {
-        if (index !== mine) return; // superseded by a newer index
+        if (index !== mine) return forget(); // superseded while incomplete, so it cannot be reused
         statusEl.textContent = 'Indexing…';
         const ids = order.slice(i, i + BATCH);
         const r = await send<IndexResponse>({ type: 'index', indexId: mine.id, ids, texts: ids.map((id) => texts[id]) });
@@ -162,7 +226,7 @@ async function init(): Promise<() => void> {
       if (!input.value.trim()) statusEl.textContent = '';
       renderPanel();
     })();
-    mine.done.catch(() => { if (index === mine) index = null; });
+    mine.done.catch(() => { forget(); if (index === mine) index = null; });
     return mine.done;
   }
 
@@ -173,7 +237,7 @@ async function init(): Promise<() => void> {
     const { semantic, fuzzy } = answer;
     const hybrid = hybridScores(semantic, fuzzy, settings.weight);
     results = chunks
-      .map((c, i): Result => ({ ranges: chunkRanges(c.spans), chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
+      .map((_, i): Result => ({ chunk: i, fuzzy: fuzzy[i], semantic: semantic[i], hybrid: hybrid[i] }))
       .filter((x) => isShown(x.semantic, x.fuzzy, settings.threshold))
       .sort((x, y) => y.hybrid - x.hybrid)
       .slice(0, MAX_RESULTS);
@@ -182,19 +246,56 @@ async function init(): Promise<() => void> {
     statusEl.textContent = results.length ? '' : 'No good match';
   }
 
+  // Second model call: scores the sentences of the shown results that are longer than the highlight
+  // length. The offscreen document keeps the sentence vectors, so a later query only needs scoring.
+  async function pickHighlights(fromKeystroke = false): Promise<void> {
+    const mine = answer;
+    if (!mine || !index) return;
+    const need = results.map((r) => r.chunk).filter((c) => chunks[c].spans.length > settings.highlightLength && !mine.asked.has(c));
+    if (!need.length) return;
+    need.forEach((c) => mine.asked.add(c));
+    const mySeq = seq;
+    const before = mine.highlight;
+    mine.highlight = 'pending';
+    renderPanel();
+    const texts = (c: number) => chunks[c].spans.map((s) => blocks[s.paragraph].text.slice(s.start, s.end));
+    const r = await send<SentencesResponse>({ type: 'sentences', indexId: index.id, query: mine.query, chunks: need.map((chunk) => ({ chunk, texts: texts(chunk) })) })
+      .catch((e): ErrorResponse => ({ error: String(e) }));
+    if (mySeq !== seq || answer !== mine || 'error' in r) {
+      // The user kept typing, the page was indexed again, or the call failed. The whole chunk stays highlighted.
+      need.forEach((c) => mine.asked.delete(c));
+      mine.highlight = before === 'pending' ? null : before;
+      if (answer === mine) renderPanel();
+      return;
+    }
+    need.forEach((chunk, i) => mine.sentences.set(chunk, r.scores[i]));
+    mine.highlight = { modelMs: r.ms, tookMs: fromKeystroke ? performance.now() - typedAt : 0 };
+    render();
+  }
+
   async function semanticSearch(query: string, mySeq: number): Promise<void> {
     try {
       await ensureIndex();
       if (mySeq !== seq || !index) return;
       statusEl.textContent = 'Searching…';
-      const r = await send<QueryResponse>({ type: 'query', indexId: index.id, query });
+      let r = await send<QueryResponse>({ type: 'query', indexId: index.id, query });
       if (mySeq !== seq) return; // the user kept typing
+      if ('error' in r && r.error === INDEX_NOT_FOUND) {
+        // The offscreen document no longer has this index. Build it again, once.
+        indexes.delete(index.key);
+        index = null;
+        await ensureIndex();
+        if (mySeq !== seq || !index) return;
+        r = await send<QueryResponse>({ type: 'query', indexId: (index as Index).id, query });
+        if (mySeq !== seq) return;
+      }
       if ('error' in r) throw new Error(r.error);
       const qt = tokenize(query).map((t) => t.t);
       const caches = qt.map(() => new Map<string, number>());
       const fuzzy = chunks.map((c) => fuzzyMatch(qt, c.tokens, caches).score);
-      answer = { semantic: r.scores, fuzzy, tookMs: performance.now() - typedAt, modelMs: r.ms };
+      answer = { query, semantic: r.scores, fuzzy, tookMs: performance.now() - typedAt, modelMs: r.ms, sentences: new Map(), asked: new Set(), highlight: null };
       rank();
+      void pickHighlights(true);
     } catch (e) {
       if (mySeq !== seq) return;
       pending = false;
@@ -220,12 +321,15 @@ async function init(): Promise<() => void> {
     timer = window.setTimeout(() => void semanticSearch(query, mySeq), DEBOUNCE_MS);
   }
 
-  const chunkConfig = () => `${settings.chunkLength}:${settings.overlap}`;
+  const chunkConfig = () => `${settings.chunkLength}:${settings.overlap}:${settings.cross}`;
 
   function reindex(): void {
     blocks = extractBlocks(document.body, host);
-    chunks = buildChunks(blocks, settings.chunkLength, settings.overlap);
+    chunks = buildChunks(blocks, settings.chunkLength, settings.overlap, settings.cross);
     chunked = chunkConfig();
+    // Everything that changes the chunks is part of the key. Highlight and ranking settings are not.
+    // It is fixed here with the chunks, as a slider can move on before the page is indexed again.
+    indexKey = `${chunked}|${textSignature(blocks.map((b) => b.text))}`;
     // Results and scores point into the old chunks.
     results = [];
     answer = null;
@@ -236,6 +340,7 @@ async function init(): Promise<() => void> {
   function syncUi(): void {
     panelEl.hidden = !settings.panel;
     settingsButton.setAttribute('aria-expanded', String(settings.panel));
+    crossEl.checked = settings.cross;
     sliders.forEach((s) => {
       const key = s.name as SliderKey;
       s.value = String(settings[key]);
@@ -287,6 +392,12 @@ async function init(): Promise<() => void> {
     reindex();
     search();
   };
+  crossEl.addEventListener('change', () => {
+    settings.cross = crossEl.checked;
+    save();
+    reindex();
+    search();
+  });
   sliders.forEach((s) => {
     const key = s.name as SliderKey;
     const rechunks = key === 'chunkLength' || key === 'overlap';
@@ -295,11 +406,16 @@ async function init(): Promise<() => void> {
       settings.overlap = clampOverlap(settings.chunkLength, settings.overlap);
       save();
       syncUi();
-      // Threshold and weight re-rank at once. Chunk settings wait for the release of the slider.
+      if (rechunks) return; // chunk settings wait for the release of the slider
+      // Highlight length keeps the results and only redoes the highlights.
+      if (key === 'highlightLength') { render(); return void pickHighlights(); }
+      // Threshold and weight re-rank at once, without a model call.
       // While a search is pending, its answer is ranked with the new values anyway.
-      if (!rechunks && !pending) return answer ? rank() : search();
+      if (!pending) return answer ? rank() : search();
     });
-    if (rechunks) s.addEventListener('change', () => {
+    s.addEventListener('change', () => {
+      // Results that came in while sweeping threshold or weight are narrowed on release.
+      if (!rechunks) return void (pending || pickHighlights());
       if (chunkConfig() === chunked) return; // clamped back to what is already indexed
       reindex();
       search();
