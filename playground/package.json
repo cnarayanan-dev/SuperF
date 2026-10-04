@@ -1,0 +1,13 @@
+{
+  "name": "semantic-find-playground",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Embedding playground: print a cosine similarity matrix for a few sentences",
+  "scripts": {
+    "embed": "node embed.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.0.0"
+  }
+}
