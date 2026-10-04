@@ -165,7 +165,8 @@ async function init(): Promise<() => void> {
   function renderPanel(): void {
     if (!settings.panel) return;
     const ms = (n: number) => `${n.toFixed(0)} ms`;
-    const indexed = index?.ready ? `, indexed in ${ms(index.ms)} (${index.device})${index.reused ? ', reused' : ''}` : '';
+    const reused = index?.reused ? ', reused' : '';
+    const indexed = index?.ready ? `, indexed in ${ms(index.ms)} (${index.device})${reused}` : '';
     const timing = answer ? `\nResult in ${ms(answer.tookMs)}, model ${ms(answer.modelMs)}` : '';
     statsEl.textContent = `${chunks.length} chunks${indexed}${timing}${highlightStat()}`;
     listEl.replaceChildren();
