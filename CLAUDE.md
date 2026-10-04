@@ -13,12 +13,12 @@ Success means:
 ## Decisions for v1
 
 - **English only.** German and other languages come later.
-- **Mode switch in the overlay**: `Word` (exact and fuzzy, like Cmd+F) and `Semantic` (hybrid ranking). The user picks per search.
-- **Search per keystroke.** Fuzzy results update instantly. The semantic query runs after a short debounce (about 150 ms). Budget: results visible within 250 ms of the last keystroke.
-- **Score threshold.** Only show semantic results with cosine similarity of at least 0.35 (default for MiniLM, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the threshold is set per model in `extension/src/model.ts` and the benchmark reports a calibrated value for each. The first plan was 0.6, but that hid 21 of 25 correct MiniLM answers on the model-pick test set. Passages that contain the query words literally are shown even below the threshold.
+- **Semantic search only.** The overlay has no mode switch and no `Word` mode. Cmd+F stays the browser's own find and is the fallback for exact matching.
+- **Search per keystroke.** Each keystroke starts one semantic search after a short debounce (about 150 ms). Until the model answers, the status line shows "Indexing…" or "Searching…" and the highlights of the previous answer stay in place. On the first search on a page nothing is highlighted until the answer arrives. An empty query clears the highlights. Answers to an older query are dropped. Budget: results visible within 250 ms of the last keystroke.
+- **Score threshold.** Only show semantic results with cosine similarity of at least 0.35 (default for MiniLM, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the threshold is set per model in `extension/src/model.ts` and the benchmark reports a calibrated value for each. The first plan was 0.6, but that hid 21 of 25 correct MiniLM answers on the model-pick test set. Passages with a strong fuzzy score (0.8 or more, `STRONG_FUZZY` in `extension/src/search/rank.ts`) are shown even below the threshold. That covers literal matches and typo queries like "bandwitdh", which `Word` mode used to serve.
 - **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
-- **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
-- **Tuning panel (dev mode).** Sliders in the overlay for: score threshold, minimum and maximum highlight length (in sentences), and fuzzy vs semantic weight. Show the raw score next to each result. This is for testing and building intuition, hidden for normal users.
+- **Highlight size.** The goal is to highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph. For now the whole chunk is highlighted, which is 2 sentences at the default chunk length and more when the chunk length slider is raised. A highlight length that is separate from the chunk length is a later ticket.
+- **Settings panel.** A Settings button in the overlay opens the settings panel inside the overlay. It has sliders for the score threshold, the semantic weight, the chunk length (1 to 6 sentences, default 2) and the overlap (0 to 2 sentences, default 0, always smaller than the chunk length), plus a Reset button. Chunk length and overlap re-index the page when the slider is released. It lists the results with semantic, fuzzy and blended score, and shows the chunk count, indexing time, device, keystroke to result time, model time and model name. Threshold and weight re-rank the last answer without a model call. Settings and the open state of the panel are stored locally and shared by all tabs. This is for testing and building intuition. There is no hidden dev panel and no Alt+D shortcut any more.
 - **Shortcut**: Cmd+Shift+K for v1 (Ctrl+Shift+K on Windows and Linux). Cmd+Shift+F and Cmd+Shift+J were tried first but are blocked in Chrome, so they were dropped.
 - **Model for v1**: `Xenova/all-MiniLM-L6-v2`.
 - **Model weights are bundled** in the extension (decided). `npm run fetch-model` downloads them from Hugging Face once at build time. No download at runtime, no host permission, works offline from the first use.
@@ -28,7 +28,7 @@ Success means:
 ## How it works (short version)
 
 1. **Extract**: the content script walks the page DOM and collects visible text.
-2. **Chunk**: text is split into small pieces (sentences or short paragraphs, roughly 30 to 100 words, with slight overlap). Each chunk remembers which DOM node it came from.
+2. **Chunk**: the text of each paragraph is split into sentences, and the sentences are grouped into chunks. A chunk has `chunk length` sentences (default 2) and the next chunk starts `chunk length` minus `overlap` sentences later (default overlap 0). A chunk never leaves its paragraph, and the last chunk of a paragraph may be shorter. A chunk is a list of sentence spans, each tied to its paragraph, so it can be turned back into a highlight. The chunking is one pure function in `extension/src/search/chunks.ts`.
 3. **Embed**: a small transformer model turns each chunk into a vector (e.g. 384 numbers). Texts with similar meaning get vectors that point in similar directions.
 4. **Query**: the user's query is embedded the same way.
 5. **Rank**: cosine similarity between the query vector and every chunk vector. Highest scores win.
@@ -48,7 +48,7 @@ Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available a
 - Shortcut (Cmd+Shift+K, since Chrome reserves Cmd+F, and Cmd+Shift+F and Cmd+Shift+J are blocked) opens a search overlay on the current page.
 - Fuzzy-only search first, then add semantic ranking.
 - Highlight matches, Enter and Shift+Enter to cycle, Esc to close.
-- Mode switch (Word / Semantic) and the dev tuning panel with sliders (see Decisions).
+- Semantic search only, no mode switch. The settings panel with sliders (see Decisions).
 
 ### 3. Pick 3 models for the first batch
 | Model | Why | Approx. size (q8) |
@@ -104,14 +104,14 @@ Load it:
 Use it:
 
 - Open any normal web page and press Cmd+Shift+K, or click the extension icon in the toolbar. It does not run on `chrome://` pages, the Chrome Web Store or the PDF viewer.
-- Type a query. Switch between `Word` and `Semantic` in the overlay.
+- Type a query. Semantic search runs as you type. The status line shows "Indexing…" or "Searching…" until the result is there.
 - Enter and Shift+Enter move between results. Esc closes.
-- Alt+D inside the overlay toggles the dev panel with sliders and raw scores.
+- The Settings button opens the settings panel with sliders, raw scores per result and timings. Reset restores the defaults.
 - If the shortcut does nothing, check `chrome://extensions/shortcuts`. Another extension may hold the same keys. Chrome only applies a changed default shortcut on a fresh install, so after changing it in the manifest either set it there by hand or remove the extension and load it again.
 
 After a code change, run `npm run build` again, click the reload icon on the extension card in `chrome://extensions`, and reload the page.
 
-Tests: `npm run typecheck` and `npm run smoke` (run `npx playwright install chromium` once before the smoke test).
+Tests: `npm run typecheck`, `npm test` (Node unit tests for chunking) and `npm run smoke` (run `npm run build` and once `npx playwright install chromium` before the smoke test).
 
 ## Proposed repo structure
 
@@ -171,9 +171,8 @@ SuperF/              # repo root
 
 ## Open questions
 
-- Chunk size and overlap: test 1 sentence vs 2 to 3 sentences
+- Chunk size and overlap: chunk length and overlap can now be tried on a real page in the settings panel. Which values become the default is still open. It needs a benchmark with answers labelled as text spans (Task 4), because the model-pick benchmark works on pre-cut chunks. Overlap multiplies the number of chunks, so it also costs indexing time.
 - How to weight fuzzy vs semantic scores (fixed, or by query length)
-- What happens to an in-flight semantic query when the user keeps typing (cancel or drop stale results)?
 - Handling dynamic pages (infinite scroll, SPAs): re-index on DOM changes?
 
 ## Working conventions for Claude Code

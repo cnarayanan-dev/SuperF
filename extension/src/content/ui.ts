@@ -15,18 +15,20 @@ export const OVERLAY_HTML = `
     <button id="close" title="Close (Esc)">&#10005;</button>
   </div>
   <div class="row">
-    <div class="seg">
-      <button data-mode="word">Word</button>
-      <button data-mode="semantic">Semantic</button>
-    </div>
+    <button id="settings" title="Settings" aria-expanded="false">Settings</button>
     <span id="status"></span>
   </div>
-  <div id="dev" hidden>
+  <div id="panel" hidden>
     <label>Score threshold <input type="range" name="threshold" min="0" max="1" step="0.01"><output></output></label>
     <label>Semantic weight <input type="range" name="weight" min="0" max="1" step="0.05"><output></output></label>
-    <label>Min sentences <input type="range" name="minS" min="1" max="5" step="1"><output></output></label>
-    <label>Max sentences <input type="range" name="maxS" min="1" max="5" step="1"><output></output></label>
+    <label>Chunk length <input type="range" name="chunkLength" min="1" max="6" step="1"><output></output></label>
+    <label>Overlap <input type="range" name="overlap" min="0" max="2" step="1"><output></output></label>
+    <div id="stats"></div>
     <ol id="list"></ol>
+    <div class="row">
+      <span id="model"></span>
+      <button id="reset" title="Restore the defaults">Reset</button>
+    </div>
   </div>
 </div>
 `;
@@ -51,12 +53,14 @@ button {
   border: 1px solid transparent; border-radius: 6px; padding: 3px 7px;
 }
 button:hover { background: rgba(128, 128, 128, .18); }
-.seg { display: flex; border: 1px solid #d0d7de; border-radius: 6px; overflow: hidden; }
-.seg button { border-radius: 0; padding: 2px 10px; }
-.seg button.on { background: #0969da; color: #fff; }
+#settings { border-color: #d0d7de; padding: 2px 10px; }
+#settings[aria-expanded=true] { background: #0969da; border-color: #0969da; color: #fff; }
+#reset { border-color: #d0d7de; }
 #status { flex: 1; text-align: right; color: #656d76; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#dev { margin-top: 8px; padding-top: 8px; border-top: 1px solid #d0d7de; }
-#dev[hidden] { display: none; }
+#panel { margin-top: 8px; padding-top: 8px; border-top: 1px solid #d0d7de; }
+#panel[hidden] { display: none; }
+#stats { margin-top: 8px; color: #656d76; font-size: 12px; white-space: pre-line; }
+#model { flex: 1; color: #656d76; font-size: 12px; }
 label { display: grid; grid-template-columns: 120px 1fr 36px; align-items: center; gap: 6px; }
 output { text-align: right; font-variant-numeric: tabular-nums; }
 #list { margin: 8px 0 0; padding: 0; list-style: none; max-height: 240px; overflow: auto; }
@@ -65,7 +69,7 @@ output { text-align: right; font-variant-numeric: tabular-nums; }
 #list b { display: block; font-weight: 600; color: #656d76; }
 @media (prefers-color-scheme: dark) {
   .box { color: #e6edf3; background: #22272e; border-color: #444c56; }
-  #q, .seg, #dev { border-color: #444c56; }
-  #count, #status, #list b { color: #9198a1; }
+  #q, #panel, #settings:not([aria-expanded=true]), #reset { border-color: #444c56; }
+  #count, #status, #stats, #model, #list b { color: #9198a1; }
 }
 `;

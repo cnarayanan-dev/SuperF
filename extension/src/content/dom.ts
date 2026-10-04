@@ -1,7 +1,8 @@
 // DOM text extraction. Each chunk remembers where its text sits in the page,
 // so a result can be turned back into a Range for highlighting.
 import { tokenize, type Token } from '../search/fuzzy.ts';
-import { groupSentences, splitSentences } from '../search/sentences.ts';
+import { chunkSentences, type SentenceSpan } from '../search/chunks.ts';
+import { splitSentences } from '../search/sentences.ts';
 
 export interface Block {
   text: string;
@@ -9,11 +10,9 @@ export interface Block {
 }
 
 export interface Chunk {
-  block: number;
-  start: number; // offsets in the block text
-  end: number;
-  text: string;
-  tokens: Token[]; // offsets relative to the chunk text
+  spans: SentenceSpan[]; // the sentences of the chunk, a paragraph is a block
+  text: string; // what the model sees: the sentences joined with a space
+  tokens: Token[];
 }
 
 const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'SELECT', 'IFRAME', 'SVG', 'CANVAS', 'TEMPLATE']);
@@ -71,15 +70,11 @@ export function extractBlocks(root: Element, ignore: Element): Block[] {
   return blocks;
 }
 
-export function buildChunks(blocks: Block[], minSentences: number, maxSentences: number): Chunk[] {
-  const chunks: Chunk[] = [];
-  blocks.forEach((b, block) => {
-    for (const [start, end] of groupSentences(splitSentences(b.text), minSentences, maxSentences)) {
-      const text = b.text.slice(start, end);
-      chunks.push({ block, start, end, text, tokens: tokenize(text) });
-    }
+export function buildChunks(blocks: Block[], chunkLength: number, overlap: number): Chunk[] {
+  return chunkSentences(blocks.map((b) => splitSentences(b.text)), chunkLength, overlap).map((spans) => {
+    const text = spans.map((s) => blocks[s.paragraph].text.slice(s.start, s.end)).join(' ');
+    return { spans, text, tokens: tokenize(text) };
   });
-  return chunks;
 }
 
 export function toRange(block: Block, start: number, end: number): Range {
