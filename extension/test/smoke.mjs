@@ -189,7 +189,7 @@ try {
     const el = root.getElementById('q');
     el.value = q;
     el.dispatchEvent(new Event('input'));
-    return { status: root.getElementById('status').textContent, current: [...CSS.highlights.get('sf-current') ?? []].map((r) => r.toString()).join(' ') };
+    return { status: root.getElementById('status').textContent, current: [...CSS.highlights.get('sf-current') ?? []].map((range) => range.cloneContents().textContent).join(' ') };
   }, 'undo a release');
   assert.equal(pending.status, 'Searching…');
   assert.match(pending.current, /environment variables/, 'previous highlight stays while pending');
