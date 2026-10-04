@@ -1,0 +1,21 @@
+{
+  "name": "semantic-find-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch-model": "node scripts/fetch-model.mjs",
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node test/smoke.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.300",
+    "esbuild": "^0.25.0",
+    "playwright": "^1.50.0",
+    "typescript": "^5.8.0"
+  }
+}

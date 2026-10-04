@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, rmSync, readdirSync, statSync, existsSync 
 import { join, resolve } from 'node:path';
 
 const { pages, queries } = JSON.parse(readFileSync('cases.json', 'utf8'));
+const isEn = q => pages.find(p => p.id === q.page).lang === 'en' && !q.crossLanguage; // v1 scope
 const CATS = ['exact', 'typo', 'variant', 'synonym', 'paraphrase'];
 const HYBRID_W = 0.7;
 
@@ -12,44 +13,16 @@ const MODELS = [
   { id: 'Xenova/gte-small', pooling: 'mean', qp: '', dp: '' },
 ];
 
-// ---------- fuzzy ----------
-const norm = s => s.toLowerCase().replace(/ß/g, 'ss').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
-  .normalize('NFD').replace(/[̀-ͯ]/g, '');
-const toks = s => norm(s).split(/[^a-z0-9]+/).filter(Boolean);
-function dl(a, b) { // optimal string alignment (Damerau-Levenshtein)
-  const m = a.length, n = b.length; const d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
-  for (let j = 0; j <= n; j++) d[0][j] = j;
-  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
-    const c = a[i - 1] === b[j - 1] ? 0 : 1;
-    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c);
-    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
-  }
-  return d[m][n];
-}
-function tokSim(q, t) {
-  if (q === t) return 1;
-  if (q.length >= 4 && (t.startsWith(q) || q.startsWith(t) && t.length >= 4)) return 0.9;
-  if (q.length >= 4 && t.includes(q)) return 0.8;
-  const s = 1 - dl(q, t) / Math.max(q.length, t.length);
-  return s >= 0.6 && Math.min(q.length, t.length) >= 4 ? s : 0;
-}
-function fuzzyScores(query, chunks) {
-  const qt = toks(query); const w = qt.map(t => t.length);
-  return chunks.map(c => {
-    const ct = toks(c); let sum = 0;
-    qt.forEach((q, i) => { let best = 0; for (const t of ct) best = Math.max(best, tokSim(q, t)); sum += best * w[i]; });
-    return sum / w.reduce((a, b) => a + b, 0);
-  });
-}
-const mm = a => { const lo = Math.min(...a), hi = Math.max(...a); return a.map(x => hi > lo ? (x - lo) / (hi - lo) : 0); };
+// ---------- search logic (shared with the extension) ----------
+import { fuzzyScores } from '../../extension/src/search/fuzzy.ts';
+import { minMax as mm, rankOf } from '../../extension/src/search/rank.ts';
 
 // ---------- metrics ----------
 const pct = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.ceil(p * s.length) - 1)]; };
 const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
-function rankOf(scores, gold) { let r = 1; for (let i = 0; i < scores.length; i++) if (i !== gold && scores[i] > scores[gold]) r++; return r; }
 function summarize(ranks) { // ranks: [{category, cross, rank}]
   const f = rs => rs.length ? { n: rs.length, r1: mean(rs.map(r => +(r.rank === 1))), r5: mean(rs.map(r => +(r.rank <= 5))), mrr: mean(rs.map(r => 1 / r.rank)) } : null;
-  const out = { overall: f(ranks), crossLanguage: f(ranks.filter(r => r.cross)) };
+  const out = { overall: f(ranks), english: f(ranks.filter(r => r.en)), crossLanguage: f(ranks.filter(r => r.cross)) };
   for (const c of CATS) out[c] = f(ranks.filter(r => r.category === c));
   return out;
 }
@@ -63,7 +36,7 @@ const results = { env: { node: process.version, note: 'Node CPU (onnxruntime-nod
   for (const q of queries) {
     const ch = pages.find(p => p.id === q.page).chunks;
     const t0 = performance.now(); const s = fuzzyScores(q.query, ch); lat.push(performance.now() - t0);
-    rk.push({ category: q.category, cross: q.crossLanguage, rank: rankOf(s, q.chunk) });
+    rk.push({ category: q.category, cross: q.crossLanguage, en: isEn(q), rank: rankOf(s, q.chunk) });
   }
   results.systems['fuzzy-only'] = { status: 'ok', metrics: summarize(rk), queryMs: { mean: mean(lat), p95: pct(lat, 0.95) }, downloadMB: 0 };
 }
@@ -99,8 +72,8 @@ for (const m of MODELS) {
       const s = pageVec[q.page].map(v => dot(qv, v)); lat.push(performance.now() - t0);
       const f = fuzzyScores(q.query, p.chunks); const ns = mm(s), nf = mm(f);
       const h = ns.map((x, i) => HYBRID_W * x + (1 - HYBRID_W) * nf[i]);
-      sem.push({ category: q.category, cross: q.crossLanguage, rank: rankOf(s, q.chunk) });
-      hyb.push({ category: q.category, cross: q.crossLanguage, rank: rankOf(h, q.chunk) });
+      sem.push({ category: q.category, cross: q.crossLanguage, en: isEn(q), rank: rankOf(s, q.chunk) });
+      hyb.push({ category: q.category, cross: q.crossLanguage, en: isEn(q), rank: rankOf(h, q.chunk) });
     }
     sys.metrics = summarize(sem); sys.queryMs = { mean: mean(lat), p95: pct(lat, 0.95) };
     results.systems[m.id + ' + fuzzy (0.7/0.3)'] = { status: 'ok', metrics: summarize(hyb), note: 'min-max normalized semantic 0.7 + fuzzy 0.3' };
@@ -113,7 +86,7 @@ writeFileSync('results.json', JSON.stringify(results, null, 1));
 const f2 = x => x == null ? 'n/a' : x.toFixed(2), f0 = x => x == null ? 'n/a' : x.toFixed(0);
 let md = `# Model pick results (quick first pass)\n\nGenerated by \`run.mjs\`. ${results.cases.queries} queries over ${results.cases.pages} pages (see \`cases.json\`). Cells are Recall@1 / Recall@5 / MRR.\n\n`;
 md += `Note: these are Node ${process.version} CPU numbers (onnxruntime-node). They are not browser WebGPU or WASM numbers, so absolute speeds will differ in Chrome. Accuracy should transfer, speed should not.\n\n`;
-const cols = [...CATS, 'overall', 'crossLanguage'];
+const cols = [...CATS, 'overall', 'english', 'crossLanguage'];
 md += `## Accuracy\n\n| System | ${cols.join(' | ')} |\n|---|${cols.map(() => '---').join('|')}|\n`;
 for (const [k, v] of Object.entries(results.systems)) {
   if (v.status !== 'ok') { md += `| ${k} | ${cols.map(() => 'blocked').join(' | ')} |\n`; continue; }

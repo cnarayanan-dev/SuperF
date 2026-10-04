@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Semantic Find",
+  "version": "0.1.0",
+  "description": "Smarter in-page search. Finds passages by typo, synonym or meaning, fully local.",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "scripting", "storage", "offscreen"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Semantic Find (Cmd+Shift+F)" },
+  "commands": {
+    "open-search": {
+      "suggested_key": { "default": "Ctrl+Shift+F", "mac": "Command+Shift+F" },
+      "description": "Open Semantic Find on the current page"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "cross_origin_embedder_policy": { "value": "require-corp" },
+  "cross_origin_opener_policy": { "value": "same-origin" }
+}

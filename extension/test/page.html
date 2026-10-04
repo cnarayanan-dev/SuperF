@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Relay CLI documentation</title>
+<style>body{font:16px/1.6 system-ui;max-width:700px;margin:40px auto}section{margin-bottom:900px}</style></head>
+<body>
+<nav><a href="#a">Install</a> <a href="#b">Deploy</a> <a href="#c">Billing</a></nav>
+<h1>Relay CLI documentation</h1>
+<section id="a"><h2>Getting started</h2>
+<p>Install the Relay CLI with <code>npm install -g relay-cli</code>. The tool requires Node 18 or newer.</p>
+<p>Run <b>relay login</b> to authenticate. A browser window opens and asks you to approve the session. Tokens are stored in your home directory.</p>
+<p>Secrets such as API keys should be added as environment variables. Never commit them to version control.</p></section>
+<section id="b"><h2>Deploying</h2>
+<p>Run relay deploy to publish your project. The first deployment usually takes about two minutes.</p>
+<p>If a release breaks production, run relay rollback to restore the previous version. Rollbacks complete within seconds.</p>
+<p>Static assets are cached at the edge for one hour by default. Use the cache-control header to change the duration.</p>
+<p style="display:none">Hidden optimization notes that must not be found.</p></section>
+<section id="c"><h2>Billing</h2>
+<p>The free plan includes 100 GB of bandwidth per month. Additional traffic costs five dollars per 100 GB.</p>
+<p>To close your account, open Billing and choose Delete team. All projects and deployments are removed permanently.</p>
+<p>If a build fails with exit code 137, the process ran out of memory. Reduce parallel jobs or upgrade to a larger build machine.</p></section>
+</body></html>
