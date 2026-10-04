@@ -9,7 +9,7 @@ const HYBRID_W = 0.7;
 const MODELS = [
   { id: 'Xenova/all-MiniLM-L6-v2', pooling: 'mean', qp: '', dp: '' },
   { id: 'Xenova/bge-small-en-v1.5', pooling: 'cls', qp: 'Represent this sentence for searching relevant passages: ', dp: '' },
-  { id: 'Xenova/multilingual-e5-small', pooling: 'mean', qp: 'query: ', dp: 'passage: ' },
+  { id: 'Xenova/gte-small', pooling: 'mean', qp: '', dp: '' },
 ];
 
 // ---------- fuzzy ----------

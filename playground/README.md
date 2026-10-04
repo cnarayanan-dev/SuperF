@@ -9,7 +9,7 @@ cd playground
 npm install
 node embed.mjs
 node embed.mjs --model Xenova/bge-small-en-v1.5
-node embed.mjs --model Xenova/multilingual-e5-small
+node embed.mjs --model Xenova/gte-small
 node embed.mjs --dtype fp32
 ```
 

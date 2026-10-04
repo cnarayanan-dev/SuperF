@@ -91,7 +91,8 @@ Some models were trained with a marker telling them what role the text plays. Sk
 |---|---|---|
 | all-MiniLM-L6-v2 | none | none |
 | bge-small-en-v1.5 | `Represent this sentence for searching relevant passages: ` | none |
-| multilingual-e5-small | `query: ` | `passage: ` |
+| gte-small | none | none |
+| multilingual-e5-small (not used in v1) | `query: ` | `passage: ` |
 
 Always check the model card. Note the asymmetry: the prefix goes on the query side for bge, and on both sides (different values) for e5.
 
@@ -129,5 +130,5 @@ and paste the matrix below.
 These are things to check in the real matrix, not results:
 - Rows 2/3 and 4/5 (synonym and paraphrase) should score clearly higher than either does against row 6 (unrelated). That is the case for semantic search.
 - Row 0 vs row 1 (typo-ish variant) should be high, but a typo inside a single query word is a harder test. Try swapping in a misspelled single word and compare with an edit distance score. Expect semantic to be less reliable there, which motivates the hybrid design.
-- Row 0 vs row 7 (German): `all-MiniLM-L6-v2` is English only, so expect a weak score. Rerun with `--model Xenova/multilingual-e5-small` and compare.
+- Row 0 vs row 7 (German): `all-MiniLM-L6-v2` is English only, so expect a weak score. v1 is English only, so this row just shows the limit.
 - Compare `--dtype q8` with `--dtype fp32` to see the quantization effect on individual scores.

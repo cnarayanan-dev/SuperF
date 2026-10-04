@@ -15,11 +15,12 @@ Success means:
 - **English only.** German and other languages come later.
 - **Mode switch in the overlay**: `Word` (exact and fuzzy, like Cmd+F) and `Semantic` (hybrid ranking). The user picks per search.
 - **Search per keystroke.** Fuzzy results update instantly. The semantic query runs after a short debounce (about 150 ms). Budget: results visible within 250 ms of the last keystroke.
-- **Score threshold.** Only show semantic results above a minimum score. No result is better than a wrong one. Show "no good match" instead. Cosine scores are not comparable across models, so the threshold is calibrated per model on the benchmark, not fixed by hand. Use an absolute floor plus a relative rule (keep results within X of the top score).
+- **Score threshold.** Only show semantic results with cosine similarity of at least 0.6 (default, adjustable by slider). No result is better than a wrong one. Show "no good match" instead. Scores differ between models, so the benchmark also reports a calibrated threshold per model to check whether 0.6 holds.
+- **Result order.** Results are sorted by similarity, highest first. The best match is selected and scrolled into view. Enter moves to the next best.
 - **Highlight size.** Highlight at most 2 sentences per result, so the user sees the answer and not a whole paragraph.
 - **Tuning panel (dev mode).** Sliders in the overlay for: score threshold, minimum and maximum highlight length (in sentences), and fuzzy vs semantic weight. Show the raw score next to each result. This is for testing and building intuition, hidden for normal users.
 - **Shortcut**: Cmd+Shift+F for v1.
-- **Model weights are bundled** in the extension. No download, no host permission, works offline from the first use.
+- **Model weights are bundled** in the extension (decided). No download, no host permission, works offline from the first use.
 - **Target hardware**: Apple M-series MacBook, recent Chrome. Report WASM numbers as well, but WebGPU on M-series is the target.
 
 ## How it works (short version)
@@ -52,10 +53,10 @@ Models run via Transformers.js (ONNX Runtime Web), using WebGPU when available a
 |---|---|---|
 | `Xenova/all-MiniLM-L6-v2` | Classic fast baseline, 384 dims | ~23 MB |
 | `Xenova/bge-small-en-v1.5` | Stronger English retrieval at similar size | ~34 MB |
-| `Xenova/multilingual-e5-small` | Reference only. v1 is English, so not a default candidate | ~118 MB |
+| `Xenova/gte-small` | Strong English retrieval, 384 dims, no prefixes needed | ~34 MB |
 
 Plus a **no-model baseline** (fuzzy only) to prove the model earns its cost.
-Note: e5 models need `query: ` and `passage: ` prefixes. bge works best with its query instruction prefix. Check each model card.
+Note: bge works best with its query instruction prefix. MiniLM and gte need none. Check each model card. Sizes are estimates until verified.
 
 ### 4. Test cases and automated benchmark
 - Collect 15 to 20 saved English HTML pages: docs, news, Wikipedia, long-form articles.
@@ -116,7 +117,7 @@ SuperF/              # repo root
 - `content_security_policy.extension_pages`: include `'wasm-unsafe-eval'`
 - No `<all_urls>` host permission in v1. Revisit only if pre-indexing on page load proves necessary.
 - No host permission for model download, because weights are bundled.
-- One offscreen document serves all tabs. It loads the model once and answers requests tagged with the tab id.
+- One offscreen document serves all tabs (decided). It loads the model once and answers requests tagged with the tab id.
 
 ## Milestones
 
@@ -141,7 +142,6 @@ SuperF/              # repo root
 
 - Chunk size and overlap: test 1 sentence vs 2 to 3 sentences
 - How to weight fuzzy vs semantic scores (fixed, or by query length)
-- Replace multilingual-e5-small with a third English model (for example gte-small)?
 - What happens to an in-flight semantic query when the user keeps typing (cancel or drop stale results)?
 - Handling dynamic pages (infinite scroll, SPAs): re-index on DOM changes?
 
