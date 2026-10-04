@@ -30,7 +30,7 @@ export function chunkSentences(paragraphs: Span[][], length: number, overlap: nu
 export function chunkRanges(chunk: SentenceSpan[]): [paragraph: number, start: number, end: number][] {
   const out: [number, number, number][] = [];
   for (const s of chunk) {
-    const last = out[out.length - 1];
+    const last = out.at(-1);
     if (last?.[0] === s.paragraph) last[2] = s.end;
     else out.push([s.paragraph, s.start, s.end]);
   }

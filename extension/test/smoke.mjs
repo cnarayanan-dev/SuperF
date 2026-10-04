@@ -92,7 +92,7 @@ try {
   await check('synonym', 'undo a release', /rollback/);
   assert.match(await items.first().textContent(), /semantic 0\.\d\d · fuzzy [01]\.\d\d · blended [01]\.\d\d/);
   const stats = await panel.locator('#stats').textContent();
-  assert.match(stats, /\d+ chunks, indexed in \d+ ms \((webgpu|wasm) fp16\)/);
+  assert.match(stats, /^\d+ chunks, indexed in \d+ ms \((webgpu|wasm) fp16\)/);
   assert.match(stats, /Result in \d+ ms, model \d+ ms/);
   assert.equal(await panel.locator('#model').textContent(), 'Xenova/all-MiniLM-L6-v2');
 
@@ -189,7 +189,7 @@ try {
     const el = root.getElementById('q');
     el.value = q;
     el.dispatchEvent(new Event('input'));
-    return { status: root.getElementById('status').textContent, current: [...CSS.highlights.get('sf-current') ?? []].join(' ') };
+    return { status: root.getElementById('status').textContent, current: [...CSS.highlights.get('sf-current') ?? []].map((r) => r.toString()).join(' ') };
   }, 'undo a release');
   assert.equal(pending.status, 'Searching…');
   assert.match(pending.current, /environment variables/, 'previous highlight stays while pending');
